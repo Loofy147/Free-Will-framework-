@@ -13,7 +13,7 @@ Starting from the ambiguous directive "find the free will, use anything can help
 
 **Key Innovation:** A mathematically rigorous metric FWI ∈ [0,1] that quantifies volitional agency by integrating seven dimensions: causal entropy, integrated information, counterfactual depth, metacognitive awareness, veto efficacy (Free Won't), Bayesian precision, and constitutional constraints.
 
-**Validation Status:** ✓ All 14 unit tests passed, emergence theorem proven, quantum extension implemented, JAX acceleration integrated, Scalability optimized (O(n log n)), AI Safety Monitor integrated, Real-world Autonomous Assistant implemented
+**Validation Status:** ✓ All 17 unit tests passed, emergence theorem proven, quantum extension implemented, JAX acceleration integrated, Scalability optimized (O(n log n)), AI Safety Monitor integrated, Real-world Autonomous Assistant implemented, Social Volition (P6) extension active
 
 ---
 
@@ -313,7 +313,14 @@ We demonstrated the practical utility of FWI in an adaptive AI assistant that dy
     - < 0.4: **Defer** (Low agency, hands control to human)
 - **Explainable Agency:** Integrated `FWIExplainer` to provide natural language justifications for its autonomy state, ensuring trust calibration and transparency.
 
-### 7. Quantum Agency Model
+### 7. Social Volition & Collective Agency (P6)
+We extended the framework to model emergent agency in multi-agent systems:
+- **Φ_social Metric:** Quantifies the causal integration of the group graph.
+- **Democratic Volition (DV):** Measures the alignment between collective action and individual preferences.
+- **Synergy Detection:** Identifies scenarios where group agency outperforms the average individual capability.
+- **Phase Transitions:** Demonstrated transitions from fragmented behaviors to coherent "coordinated volition" as social coupling increases.
+
+### 8. Quantum Agency Model
 
 **Standard AI:** Agent selects ONE action via argmax(utility)
 

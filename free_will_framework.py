@@ -874,8 +874,17 @@ def run_free_will_simulation():
     print(f"   Autonomy Level: {autonomy_status['level']}")
     print(f"   Explanation:    {autonomy_status['explanation']}")
 
-    # 10. Validation protocol
-    print(f"\n7. EXPERIMENTAL VALIDATION PROTOCOL")
+    # 10. Social Volition (P6 Integration)
+    from social_volition import SwarmSimulator
+    print(f"\n7. SOCIAL VOLITION (P6 INTEGRATION)")
+    social_sim = SwarmSimulator(n_agents=20) # Smaller for main demo
+    social_res = social_sim.run_step(coupling_strength=0.8)
+    print(f"   Collective FWI: {social_res['collective_fwi']:.4f}")
+    print(f"   Group Status:   {social_res['status']}")
+    print(f"   Synergy Gain:   {social_res['synergy_gain']:+.4f}")
+
+    # 11. Validation protocol
+    print(f"\n8. EXPERIMENTAL VALIDATION PROTOCOL")
     validation = validate_against_neuroscience()
     for key, value in validation.items():
         print(f"   {key:25s}: {value}")
