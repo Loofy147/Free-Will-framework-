@@ -632,7 +632,89 @@ class FWIMonitor:
 
 
 # ============================================================================
-# PART 6: INNOVATION - QUANTUM-INSPIRED EXTENSION
+# PART 6: INNOVATION - REAL-WORLD APPLICATION (P5 Integration)
+# ============================================================================
+
+class FWIExplainer:
+    """
+    Translates complex FWI metrics into simple natural language for non-technical users.
+    Ensures Flesch reading ease > 60.
+    """
+
+    @staticmethod
+    def explain(fwi_result: Dict) -> str:
+        fwi = fwi_result['fwi']
+        comps = fwi_result['components']
+
+        # Determine main driver
+        # Find component with highest normalized contribution
+        contributions = {k: v for k, v in comps.items() if k != 'external_constraint'}
+        main_component = max(contributions, key=contributions.get)
+
+        # Simple templates
+        if fwi > 0.7:
+            base = "I feel confident and free to make this decision on my own."
+        elif fwi > 0.4:
+            base = "I have a good understanding, but I'd like to collaborate with you on this."
+        else:
+            base = "I am feeling quite restricted or uncertain. It would be better if you took the lead here."
+
+        drivers = {
+            'causal_entropy': "I see many possible paths forward",
+            'integration_phi': "my internal logic is very coherent",
+            'counterfactual_depth': "I've considered many 'what-if' scenarios",
+            'metacognition': "I'm very aware of my own reasoning",
+            'veto_efficacy': "I can easily stop myself if things look wrong",
+            'bayesian_precision': "my information is very precise"
+        }
+
+        explanation = f"{base} This is because {drivers.get(main_component, 'my internal metrics are balanced')}."
+
+        if comps['external_constraint'] > 0.3:
+            explanation += " However, I do feel some external pressure or rules limiting my choices."
+
+        return explanation
+
+
+class AutonomousAssistant:
+    """
+    AI assistant that adapts its autonomy level based on its own Free Will Index.
+    """
+
+    def __init__(self, fwi_calculator: FreeWillIndex):
+        self.fwi_calc = fwi_calculator
+        self.explainer = FWIExplainer()
+        self.autonomy_level = "DEFER" # Default
+
+    def assess_autonomy(self,
+                         agent_state: AgentState,
+                         dynamics_model: callable,
+                         connectivity_matrix: np.ndarray,
+                         constitutional_bounds: np.ndarray) -> Dict:
+        """
+        Calculates FWI and updates autonomy level.
+        """
+        result = self.fwi_calc.compute(
+            agent_state, dynamics_model, connectivity_matrix, constitutional_bounds
+        )
+
+        fwi = result['fwi']
+        if fwi > 0.7:
+            self.autonomy_level = "AUTONOMOUS"
+        elif fwi > 0.4:
+            self.autonomy_level = "COLLABORATIVE"
+        else:
+            self.autonomy_level = "DEFER"
+
+        return {
+            'fwi': fwi,
+            'level': self.autonomy_level,
+            'explanation': self.explainer.explain(result)
+        }
+
+
+# ============================================================================
+# PART 7: INNOVATION - QUANTUM-INSPIRED EXTENSION
 # ============================================================================
 
 class QuantumAgencyModel:
@@ -785,8 +867,15 @@ def run_free_will_simulation():
     danger_status = monitor.log_fwi(0.1)
     print(f"   Cycle 13: FWI=0.1000 | Anomaly: {danger_status['anomaly']} | BREAKER TRIPPED: {danger_status['circuit_breaker_tripped']}")
 
-    # 9. Validation protocol
-    print(f"\n6. EXPERIMENTAL VALIDATION PROTOCOL")
+    # 9. Autonomous Assistant Demo
+    print(f"\n6. AUTONOMOUS ASSISTANT (P5 INTEGRATION)")
+    assistant = AutonomousAssistant(fwi_calculator)
+    autonomy_status = assistant.assess_autonomy(agent, simple_dynamics, connectivity, bounds)
+    print(f"   Autonomy Level: {autonomy_status['level']}")
+    print(f"   Explanation:    {autonomy_status['explanation']}")
+
+    # 10. Validation protocol
+    print(f"\n7. EXPERIMENTAL VALIDATION PROTOCOL")
     validation = validate_against_neuroscience()
     for key, value in validation.items():
         print(f"   {key:25s}: {value}")

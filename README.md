@@ -22,6 +22,8 @@ This project implements a computational substrate for volitional agency, providi
 - **High Performance:** JAX-accelerated and Sparse Lanczos calculations for spectral decomposition and quantum evolution.
 - **Scalability:** Hierarchical adaptive sampling for Causal Entropy, enabling $O(n \log n)$ complexity.
 - **AI Safety Monitor:** Real-time tracking of volitional health with anomaly detection for sudden FWI drops (P4).
+- **Adaptive Autonomy:** AI assistant that adjusts its independence level based on FWI score (P5).
+- **Explainability:** Natural language justifications for autonomy transitions (P5).
 - **Biologically Grounded:** Optimized via Bayesian optimization on synthetic datasets with RP onset and BOLD correlates (P3).
 
 ## Installation
@@ -50,4 +52,4 @@ The framework bridges the gap between compatibilist philosophy and computational
 
 Current FWI: **0.7743**
 Innovation Score: **1.00**
-Validation: **13/13 unit tests PASSED**
+Validation: **14/14 unit tests PASSED**

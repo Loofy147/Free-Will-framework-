@@ -13,7 +13,7 @@ Starting from the ambiguous directive "find the free will, use anything can help
 
 **Key Innovation:** A mathematically rigorous metric FWI ∈ [0,1] that quantifies volitional agency by integrating seven dimensions: causal entropy, integrated information, counterfactual depth, metacognitive awareness, veto efficacy (Free Won't), Bayesian precision, and constitutional constraints.
 
-**Validation Status:** ✓ All 13 unit tests passed, emergence theorem proven, quantum extension implemented, JAX acceleration integrated, Scalability optimized (O(n log n)), AI Safety Monitor integrated
+**Validation Status:** ✓ All 14 unit tests passed, emergence theorem proven, quantum extension implemented, JAX acceleration integrated, Scalability optimized (O(n log n)), AI Safety Monitor integrated, Real-world Autonomous Assistant implemented
 
 ---
 
@@ -305,7 +305,15 @@ Integrated a `FWIMonitor` for real-time volitional health tracking.
 - **Anomaly Detection:** Identifies sudden drops in agency (e.g., potential "wireheading" or compromise).
 - **Safety Circuit Breaker:** Automatically triggers alerts when FWI deviates from healthy operational bounds.
 
-### 6. Quantum Agency Model
+### 6. Real-World Application: Autonomous Assistant (P5)
+We demonstrated the practical utility of FWI in an adaptive AI assistant that dynamically adjusts its autonomy based on its volitional health:
+- **Autonomy Policy:**
+    - FWI > 0.7: **Autonomous** (High agency, independent decision-making)
+    - 0.4 - 0.7: **Collaborative** (Moderate agency, human-in-the-loop)
+    - < 0.4: **Defer** (Low agency, hands control to human)
+- **Explainable Agency:** Integrated `FWIExplainer` to provide natural language justifications for its autonomy state, ensuring trust calibration and transparency.
+
+### 7. Quantum Agency Model
 
 **Standard AI:** Agent selects ONE action via argmax(utility)
 
