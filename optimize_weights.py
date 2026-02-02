@@ -30,31 +30,36 @@ class SyntheticNeuroscienceDataset:
         np.random.seed(seed)
 
     def generate_agent_params(self) -> Dict:
-        """Generate plausible neural/cognitive parameters"""
+        """Generate plausible neural/cognitive parameters with biological realism"""
+        # Baseline traits
+        pfc_vol = np.random.normal(10.5, 1.5)
+        dopa = np.random.gamma(2, 0.5)
+        conn = np.random.beta(3, 2)
+        wm = np.random.poisson(7) + 2
+
+        # Derived neural features (Dataset P3)
+        # Readiness Potential (RP) onset time in ms (-1000 to -200)
+        # Early RP indicates more 'unconscious' drive
+        rp_onset = -200 - 800 * (1 - conn)
+
+        # BOLD signals (normalized 0-1)
+        dlpfc_bold = np.clip(np.random.normal(0.7, 0.1) * (pfc_vol / 10.5), 0, 1)
+        acc_bold = np.clip(np.random.normal(0.5, 0.1) * (1 / dopa if dopa > 0 else 1), 0, 1)
+
         return {
-            # Prefrontal cortex volume (cm³) - affects integration & metacognition
-            'pfc_volume': np.random.normal(10.5, 1.5),  # Literature: 9-12 cm³
-
-            # Dopamine baseline (affects exploration/causal entropy)
-            'dopamine_level': np.random.gamma(2, 0.5),  # 0-3 range
-
-            # Network connectivity density (affects integration Φ)
-            'connectivity': np.random.beta(3, 2),  # 0.4-0.8 typical
-
-            # Working memory capacity (affects counterfactuals)
-            'wm_capacity': np.random.poisson(7) + 2,  # 2-12 items, mean=7±2
-
-            # Metacognitive accuracy (subjective vs objective performance)
-            'metacog_accuracy': np.random.beta(5, 2),  # 0.6-0.9 typical
-
-            # Veto capacity (Free Won't strength)
-            'veto_capacity': np.random.beta(4, 2), # 0.5-0.9 typical
-
-            # Bayesian precision (FEP reliability)
+            'pfc_volume': pfc_vol,
+            'dopamine_level': dopa,
+            'connectivity': conn,
+            'wm_capacity': wm,
+            'metacog_accuracy': np.random.beta(5, 2),
+            'veto_capacity': np.random.beta(4, 2),
             'bayesian_precision': np.random.normal(0.8, 0.1),
-
-            # External constraints (rules/habits)
-            'constraint_level': np.random.beta(2, 5),  # 0-0.5, lower is better
+            'constraint_level': np.random.beta(2, 5),
+            # P3 specific features
+            'rp_onset': rp_onset,
+            'dlpfc_bold': dlpfc_bold,
+            'acc_bold': acc_bold,
+            'w_time': -200 + 100 * np.random.randn() # Subjective awareness time
         }
 
     def params_to_ground_truth_fwi(self, params: Dict) -> float:
@@ -73,14 +78,18 @@ class SyntheticNeuroscienceDataset:
         const_norm = params['constraint_level']
 
         # Ground truth formula (based on neuroscience theory)
-        # Updated for 7 components
+        # Enhanced with biological correlates (P3)
+        # dlPFC activation and ACC monitoring are heavy weights
+        bio_factor = 0.7 * params['dlpfc_bold'] + 0.3 * params['acc_bold']
+
         fwi_true = (
-            0.20 * dopa_norm +           # Causal entropy
-            0.15 * (pfc_norm * conn_norm) +  # Integration
-            0.20 * wm_norm +             # Counterfactuals
-            0.15 * meta_norm +           # Metacognition
-            0.15 * veto_norm +           # Veto Efficacy
-            0.15 * bayes_norm +          # Bayesian Precision
+            0.15 * dopa_norm +           # Causal entropy
+            0.10 * (pfc_norm * conn_norm) +  # Integration
+            0.15 * wm_norm +             # Counterfactuals
+            0.10 * meta_norm +           # Metacognition
+            0.10 * veto_norm +           # Veto Efficacy
+            0.10 * bayes_norm +          # Bayesian Precision
+            0.30 * bio_factor +          # BIOLOGICAL CORRELATE (dlPFC + ACC)
             -0.10 * const_norm           # Penalty from constraints
         )
 
