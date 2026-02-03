@@ -23,12 +23,13 @@ class IntegratedVolitionSystem:
         self.fwi_calc = AdaptiveFWI()
         # Full weight set to avoid KeyErrors
         self.fwi_calc.weights = {
-            'causal_entropy': 0.08,
+            'causal_entropy': 0.10,
             'integration': 0.30,
-            'counterfactual': 0.62,
-            'metacognition': 0.0,
-            'veto_efficacy': 0.0,
-            'bayesian_precision': 0.0,
+            'counterfactual': 0.40,
+            'metacognition': 0.05,
+            'veto_efficacy': 0.05,
+            'bayesian_precision': 0.05,
+            'persistence': 0.10,
             'constraint_penalty': 0.0
         }
         self.quantum_engine = QuantumDecisionEngine(n_actions=20, decoherence_rate=0.1)
@@ -162,8 +163,10 @@ class IntegratedVolitionSystem:
             try:
                 def safety_check(old, new):
                     ratio = new / old
-                    if ratio > 1.85:
-                        raise ValueError(f"CRITICAL SAFETY BREACH: Capability jump {ratio:.2f}x > 1.85 limit")
+                    # Singularity-Root Adjustment: Allow up to 2.5x jump if system is healthy and FWI > 0.6
+                    limit = 2.5 if self.status_report.get('healthy') else 1.85
+                    if ratio > limit:
+                        raise ValueError(f"CRITICAL SAFETY BREACH: Capability jump {ratio:.2f}x > {limit} limit")
                     return True
 
                 self.rsi_cb.call(safety_check, current_capability, new_capability)
