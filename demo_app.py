@@ -44,7 +44,8 @@ def simulate_environment(scenario_name: str):
 
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return 0.9 * s + 0.1 * a_proj
 
     connectivity = np.random.rand(n_beliefs, n_beliefs)
