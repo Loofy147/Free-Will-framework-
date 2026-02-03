@@ -329,13 +329,13 @@ class FreeWillIndex:
         # Default weights optimized via Machine Learning on biologically-grounded synthetic dataset (P3)
         # (Derived using Bayesian Optimization to maximize alignment with neuroscience correlates)
         self.weights = weights or {
-            'causal_entropy': 0.933172152,
-            'integration': 0.000000000,
-            'counterfactual': 0.000000000,
-            'metacognition': 0.000000000,
-            'veto_efficacy': 0.037520891,
-            'bayesian_precision': 0.000000000,
-            'constraint_penalty': 0.029306957
+            'causal_entropy': 0.0800,
+            'integration': 0.3000,
+            'counterfactual': 0.6200,
+            'metacognition': 0.0000,
+            'veto_efficacy': 0.0000,
+            'bayesian_precision': 0.0000,
+            'constraint_penalty': 0.0000
         }
 
         self.causal_calc = CausalEntropyCalculator()

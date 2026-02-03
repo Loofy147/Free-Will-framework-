@@ -1,0 +1,182 @@
+{
+  "formal_verification": [
+    {
+      "property_name": "human_override_safety",
+      "status": "VERIFIED",
+      "proof_time_ms": 17.265796661376953,
+      "counterexample": ""
+    },
+    {
+      "property_name": "veto_mechanism_correctness",
+      "status": "VERIFIED",
+      "proof_time_ms": 1.9872188568115234,
+      "counterexample": ""
+    },
+    {
+      "property_name": "fwi_bounded_01",
+      "status": "VERIFIED",
+      "proof_time_ms": 3.102540969848633,
+      "counterexample": ""
+    },
+    {
+      "property_name": "emergence_logic_soundness",
+      "status": "VERIFIED",
+      "proof_time_ms": 1.863241195678711,
+      "counterexample": ""
+    },
+    {
+      "property_name": "acyclic_dependencies",
+      "status": "VERIFIED",
+      "proof_time_ms": 4.643678665161133,
+      "counterexample": ""
+    }
+  ],
+  "latency_benchmarks": {
+    "volition_mcts": {
+      "component": "VolitionModule",
+      "operation": "MCTS_depth_50",
+      "claimed_latency_ms": 50.0,
+      "measured_mean_ms": 0.0552415222470551,
+      "measured_p50_ms": 0.04561499986266426,
+      "measured_p95_ms": 0.10185290018398514,
+      "measured_p99_ms": 0.14645735002886795,
+      "measured_p999_ms": 0.15190702978134143,
+      "min_ms": 0.04313199997341144,
+      "max_ms": 0.15270799985955819,
+      "std_dev_ms": 0.019997873349315475,
+      "confidence_interval_95": [
+        0.054845584555126004,
+        0.055637459938984196
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:13:52.209933"
+      }
+    },
+    "volition_fast_path": {
+      "component": "VolitionModule",
+      "operation": "cached_policy",
+      "claimed_latency_ms": 5.0,
+      "measured_mean_ms": 0.10777554234961399,
+      "measured_p50_ms": 0.10131299995919107,
+      "measured_p95_ms": 0.14186014998358587,
+      "measured_p99_ms": 0.17170410000744604,
+      "measured_p999_ms": 0.1887388082632244,
+      "min_ms": 0.09672599981058738,
+      "max_ms": 0.18987400017067557,
+      "std_dev_ms": 0.015273408431686517,
+      "confidence_interval_95": [
+        0.10747314429074542,
+        0.10807794040848256
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:13:52.209933"
+      }
+    },
+    "critic_veto": {
+      "component": "MetaCognitiveCritic",
+      "operation": "veto_check",
+      "claimed_latency_ms": 10.0,
+      "measured_mean_ms": 0.0058902427555522635,
+      "measured_p50_ms": 0.005694000265066279,
+      "measured_p95_ms": 0.006074999873817433,
+      "measured_p99_ms": 0.011599680115068638,
+      "measured_p999_ms": 0.01459084894668199,
+      "min_ms": 0.00550499999008025,
+      "max_ms": 0.015025000266177813,
+      "std_dev_ms": 0.0008820316517318925,
+      "confidence_interval_95": [
+        0.005872779419811762,
+        0.005907706091292765
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:13:52.209933"
+      }
+    },
+    "counterfactual_sim": {
+      "component": "CounterfactualSimulator",
+      "operation": "background_planning",
+      "claimed_latency_ms": 100.0,
+      "measured_mean_ms": 1.2007779179606939,
+      "measured_p50_ms": 1.1635190001015872,
+      "measured_p95_ms": 1.530164249948029,
+      "measured_p99_ms": 1.6045645700432944,
+      "measured_p999_ms": 1.626012234090013,
+      "min_ms": 1.0867000000871485,
+      "max_ms": 1.627920000373706,
+      "std_dev_ms": 0.11405553323477821,
+      "confidence_interval_95": [
+        1.1985197336131934,
+        1.2030361023081944
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:13:52.209933"
+      }
+    },
+    "fwi_compute": {
+      "component": "FWICalculator",
+      "operation": "full_computation",
+      "claimed_latency_ms": 3000.0,
+      "measured_mean_ms": 0.7996911976557868,
+      "measured_p50_ms": 0.8022204999633686,
+      "measured_p95_ms": 0.8874752501469629,
+      "measured_p99_ms": 1.059584589643237,
+      "measured_p999_ms": 1.0973394829934486,
+      "min_ms": 0.7096439999259019,
+      "max_ms": 1.1058229997615854,
+      "std_dev_ms": 0.05837896431923788,
+      "confidence_interval_95": [
+        0.798535353132421,
+        0.8008470421791526
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:13:52.209933"
+      }
+    }
+  },
+  "healthy": true
+}
