@@ -117,7 +117,8 @@ class SyntheticNeuroscienceDataset:
         # Dynamics model
         def dynamics(s, a):
             a_flat = a.flatten()
-            a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+            a_proj = np.zeros(len(s))
+            a_proj[:len(a_flat)] = a_flat[:len(s)]
             return s * 0.9 + a_proj * 0.1 * params['dopamine_level']
 
         # Connectivity based on parameter

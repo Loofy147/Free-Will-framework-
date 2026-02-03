@@ -50,8 +50,8 @@ def _make_dynamics(state_dim: int):
     A = A / (np.max(np.abs(np.linalg.eigvals(A))) + 0.01)  # stable
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(
-            a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return np.tanh(A @ s + 0.15 * a_proj) + np.random.randn(len(s)) * 0.005
     return dynamics
 

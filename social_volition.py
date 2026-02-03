@@ -112,7 +112,8 @@ class SwarmSimulator:
         # Simple dynamics for demo
         def dynamics(s, a):
             a_flat = a.flatten()
-            a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+            a_proj = np.zeros(len(s))
+            a_proj[:len(a_flat)] = a_flat[:len(s)]
             return 0.9 * s + 0.1 * a_proj
         bounds = np.ones(3) * 2.0
 

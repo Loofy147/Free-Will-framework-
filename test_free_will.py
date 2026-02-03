@@ -31,7 +31,8 @@ def test_fwi_bounded():
 
         def dummy_dynamics(s, a):
             a_flat = a.flatten()
-            a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+            a_proj = np.zeros(len(s))
+            a_proj[:len(a_flat)] = a_flat[:len(s)]
             return s + a_proj * 0.1
 
         connectivity = np.random.rand(n_beliefs, n_beliefs)
@@ -50,7 +51,8 @@ def test_causal_entropy_monotonicity():
 
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return s * 0.9 + a_proj * 0.1
 
     calc = CausalEntropyCalculator(time_horizon=10)
@@ -98,7 +100,8 @@ def test_counterfactual_increases_with_diversity():
 
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return s + a_proj * 0.5  # Strong influence
 
     calc = CounterfactualDepthCalculator()
@@ -188,7 +191,8 @@ def test_fwi_components_contribute():
 
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return s * 0.9 + a_proj * 0.1
 
     connectivity = np.random.rand(10, 10)
@@ -252,7 +256,8 @@ def test_known_configuration():
 
     def dynamics(s, a):
         a_flat = a.flatten()
-        a_proj = a_flat[:len(s)] if len(a_flat) >= len(s) else np.pad(a_flat, (0, len(s) - len(a_flat)))
+        a_proj = np.zeros(len(s))
+        a_proj[:len(a_flat)] = a_flat[:len(s)]
         return s * 0.9 + a_proj * 0.1
 
     connectivity = np.eye(10) * 0.5 + np.random.rand(10, 10) * 0.1

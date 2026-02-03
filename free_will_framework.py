@@ -8,8 +8,8 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
 from scipy.special import xlogy
+from dataclasses import dataclass
 from scipy.linalg import eigvalsh
 from scipy.sparse.linalg import eigsh
 from scipy.sparse import csr_matrix
@@ -69,9 +69,8 @@ class CausalEntropyCalculator:
         if len(reachable_states) > 10:
             # Sample around the most distant states to find new frontiers
             n_fine = 200
-            frontier_states = list(reachable_states)[::5] # Subsample for speed
-            for s_tuple in frontier_states:
-                s = np.array(s_tuple)
+            frontier_states = list(reachable_states.values())[::5] # Subsample for speed
+            for s in frontier_states:
                 # Refined sampling around frontier
                 refined = self._sample_reachable(s, dynamics_model, action_space, n_fine // len(frontier_states), horizon=5)
                 reachable_states.update(refined)
@@ -79,14 +78,19 @@ class CausalEntropyCalculator:
         return np.log(len(reachable_states) + 1)
 
     def _sample_reachable(self, start_state, dynamics_model, action_space, n_samples, horizon=None):
-        reachable = set()
+        reachable = {}  # hash -> state mapping
         h = horizon or self.tau
-        for _ in range(n_samples):
+        # Pre-sample action indices to reduce overhead
+        action_indices = np.random.randint(0, len(action_space), size=(n_samples, h))
+        for i in range(n_samples):
             state = start_state.copy()
-            for _step in range(h):
-                action = action_space[np.random.randint(0, len(action_space))]
+            for j in range(h):
+                action = action_space[action_indices[i, j]]
                 state = dynamics_model(state, action)
-                reachable.add(tuple(np.round(state, decimals=2)))
+                # Fast hashing using tobytes()
+                hsh = state.round(2).tobytes()
+                if hsh not in reachable:
+                    reachable[hsh] = state.copy()
         return reachable
 
     def _basic_mc_sampling(self, current_state, dynamics_model, action_space, n_samples):
@@ -107,18 +111,22 @@ class CausalEntropyCalculator:
         n_samples = 500
         state_given_action = {}  # P(S_future | A_sequence)
 
-        for _ in range(n_samples):
+        # Pre-sample action sequences
+        seq_indices = np.random.randint(0, len(action_space), size=(n_samples, n_steps))
+
+        for i in range(n_samples):
             # Sample action sequence
-            action_seq = tuple(action_space[
-                np.random.randint(0, len(action_space), n_steps)
-            ].flatten())
+            action_indices = seq_indices[i]
+            action_seq_objs = action_space[action_indices]
+            action_seq = tuple(action_seq_objs.flatten())
 
             # Simulate
             state = current_state.copy()
-            for action in action_seq:
+            for action in action_seq_objs:
                 state = dynamics_model(state, action.reshape(-1))
 
-            state_hash = tuple(np.round(state, decimals=2))
+            # Fast hashing
+            state_hash = state.round(2).tobytes()
 
             if action_seq not in state_given_action:
                 state_given_action[action_seq] = []
@@ -129,14 +137,16 @@ class CausalEntropyCalculator:
         all_states = [s for states in state_given_action.values() for s in states]
 
         # Entropy of future states
-        unique_states, counts = np.unique(all_states, return_counts=True, axis=0)
+        # np.unique with axis=0 is slow for bytes, but we have bytes now, so we can use standard unique
+        unique_states, counts = np.unique(all_states, return_counts=True)
         p_states = counts / counts.sum()
+        # use scipy.special.xlogy as it is already imported or available
         H_states = -xlogy(p_states, p_states).sum()
 
         # Conditional entropy H(S|A)
         H_conditional = 0
         for action_seq, states in state_given_action.items():
-            unique, counts = np.unique(states, return_counts=True, axis=0)
+            unique, counts = np.unique(states, return_counts=True)
             p = counts / counts.sum()
             H_conditional += len(states) / len(all_states) * (-xlogy(p, p).sum())
 
@@ -178,6 +188,8 @@ class IntegratedInformationCalculator:
 
     Tononi's IIT 3.0 simplified for computational tractability
     """
+    def __init__(self):
+        self._phi_cache = {}
 
     @staticmethod
     @jax.jit
@@ -200,6 +212,11 @@ class IntegratedInformationCalculator:
         """
         Compute Φ - integrated information using JAX or Sparse Lanczos acceleration
         """
+        # Cache lookup
+        h = hash(connectivity_matrix.tobytes())
+        if h in self._phi_cache:
+            return self._phi_cache[h]
+
         n = len(connectivity_matrix)
 
         if n > 500:
@@ -207,8 +224,7 @@ class IntegratedInformationCalculator:
             sparse_conn = csr_matrix(connectivity_matrix)
             # degree matrix
             degree = np.array(sparse_conn.sum(axis=1)).flatten()
-            laplacian = -sparse_conn
-            laplacian.setdiag(degree)
+            laplacian = diags(degree) - sparse_conn
 
             # Find 2 smallest eigenvalues (λ1, λ2)
             # Which=SM finds smallest magnitude eigenvalues
@@ -222,7 +238,9 @@ class IntegratedInformationCalculator:
             # Use JAX for smaller dimensions
             spectral_gap = self._compute_spectral_gap_jax(jnp.array(connectivity_matrix))
 
-        return float(np.tanh(spectral_gap))
+        phi = float(np.tanh(spectral_gap))
+        self._phi_cache[h] = phi
+        return phi
 
 
 class VetoMechanism:
@@ -278,22 +296,21 @@ class CounterfactualDepthCalculator:
         Returns:
             (n_distinct_futures, average_divergence)
         """
-        futures = {}
+        futures = {}  # hsh -> state
 
         for action in action_space:
             # Simulate one step
             next_state = dynamics_model(current_state, action)
-            state_hash = tuple(np.round(next_state, decimals=1))
+            state_hash = next_state.round(1).tobytes()
 
             if state_hash not in futures:
-                futures[state_hash] = []
-            futures[state_hash].append(action)
+                futures[state_hash] = next_state
 
         n_distinct = len(futures)
 
         # Average divergence between futures
         if len(futures) > 1:
-            future_states = np.array([list(k) for k in futures.keys()])
+            future_states = np.array(list(futures.values()))
             pairwise_dist = np.linalg.norm(
                 future_states[:, None] - future_states[None, :],
                 axis=2
@@ -796,7 +813,7 @@ def run_free_will_simulation():
         """Linear dynamics with noise"""
         # Ensure action is flattened and matches state dimension
         action_flat = action.flatten()
-        action_projected = action_flat[:len(state)] if len(action_flat) >= len(state) else np.pad(action_flat, (0, len(state) - len(action_flat)))
+        action_projected = np.zeros(len(state)); action_projected[:len(action_flat)] = action_flat[:len(state)]
         return 0.9 * state + 0.1 * action_projected + np.random.randn(len(state)) * 0.01
 
     # 3. Define connectivity (simplified - random graph)
