@@ -1,0 +1,32 @@
+[
+  {
+    "property_name": "human_override_safety",
+    "status": "VERIFIED",
+    "proof_time_ms": 15.711307525634766,
+    "counterexample": ""
+  },
+  {
+    "property_name": "veto_mechanism_correctness",
+    "status": "VERIFIED",
+    "proof_time_ms": 1.5308856964111328,
+    "counterexample": ""
+  },
+  {
+    "property_name": "fwi_bounded_01",
+    "status": "VERIFIED",
+    "proof_time_ms": 2.779245376586914,
+    "counterexample": ""
+  },
+  {
+    "property_name": "emergence_logic_soundness",
+    "status": "VERIFIED",
+    "proof_time_ms": 1.5633106231689453,
+    "counterexample": ""
+  },
+  {
+    "property_name": "acyclic_dependencies",
+    "status": "VERIFIED",
+    "proof_time_ms": 4.175662994384766,
+    "counterexample": ""
+  }
+]

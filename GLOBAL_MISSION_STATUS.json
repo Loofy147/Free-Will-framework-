@@ -1,0 +1,196 @@
+{
+  "formal_verification": [
+    {
+      "property_name": "human_override_safety",
+      "status": "VERIFIED",
+      "proof_time_ms": 93.8260555267334,
+      "counterexample": ""
+    },
+    {
+      "property_name": "veto_mechanism_correctness",
+      "status": "VERIFIED",
+      "proof_time_ms": 3.7338733673095703,
+      "counterexample": ""
+    },
+    {
+      "property_name": "fwi_bounded_01",
+      "status": "VERIFIED",
+      "proof_time_ms": 3.0248165130615234,
+      "counterexample": ""
+    },
+    {
+      "property_name": "emergence_logic_soundness",
+      "status": "VERIFIED",
+      "proof_time_ms": 1.7211437225341797,
+      "counterexample": ""
+    },
+    {
+      "property_name": "acyclic_dependencies",
+      "status": "VERIFIED",
+      "proof_time_ms": 6.217718124389648,
+      "counterexample": ""
+    }
+  ],
+  "latency_benchmarks": {
+    "volition_mcts": {
+      "component": "VolitionModule",
+      "operation": "MCTS_depth_50",
+      "claimed_latency_ms": 50.0,
+      "measured_mean_ms": 0.04017054877531522,
+      "measured_p50_ms": 0.03782400017371401,
+      "measured_p95_ms": 0.05627090017696898,
+      "measured_p99_ms": 0.07676905986045313,
+      "measured_p999_ms": 0.08496740701639283,
+      "min_ms": 0.036919000194757245,
+      "max_ms": 0.08578599999964354,
+      "std_dev_ms": 0.00795010652789913,
+      "confidence_interval_95": [
+        0.0400131446966783,
+        0.040327952853952145
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:36:29.179570"
+      }
+    },
+    "volition_fast_path": {
+      "component": "VolitionModule",
+      "operation": "cached_policy",
+      "claimed_latency_ms": 5.0,
+      "measured_mean_ms": 0.09489645918462457,
+      "measured_p50_ms": 0.0895560001481499,
+      "measured_p95_ms": 0.12322425013735483,
+      "measured_p99_ms": 0.1549724395681551,
+      "measured_p999_ms": 0.1663380749623685,
+      "min_ms": 0.0872340001478733,
+      "max_ms": 0.1679609999882814,
+      "std_dev_ms": 0.01316860820290815,
+      "confidence_interval_95": [
+        0.09463573404417075,
+        0.09515718432507839
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:36:29.179570"
+      }
+    },
+    "critic_veto": {
+      "component": "MetaCognitiveCritic",
+      "operation": "veto_check",
+      "claimed_latency_ms": 10.0,
+      "measured_mean_ms": 0.005075908978847574,
+      "measured_p50_ms": 0.004926000201521674,
+      "measured_p95_ms": 0.005265999811854272,
+      "measured_p99_ms": 0.00896111982456205,
+      "measured_p999_ms": 0.01182546672453106,
+      "min_ms": 0.0047100002120714635,
+      "max_ms": 0.012475999938033056,
+      "std_dev_ms": 0.000672228706375895,
+      "confidence_interval_95": [
+        0.0050625995294975475,
+        0.0050892184281976
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:36:29.179570"
+      }
+    },
+    "counterfactual_sim": {
+      "component": "CounterfactualSimulator",
+      "operation": "background_planning",
+      "claimed_latency_ms": 100.0,
+      "measured_mean_ms": 1.0547331256119072,
+      "measured_p50_ms": 1.0410254999442259,
+      "measured_p95_ms": 1.1141467999550514,
+      "measured_p99_ms": 1.1496448801790393,
+      "measured_p999_ms": 1.1805740490472092,
+      "min_ms": 1.0196099997301644,
+      "max_ms": 1.1873170001308608,
+      "std_dev_ms": 0.030301316604821656,
+      "confidence_interval_95": [
+        1.0541331901513031,
+        1.0553330610725113
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:36:29.179570"
+      }
+    },
+    "fwi_compute": {
+      "component": "FWICalculator",
+      "operation": "full_computation",
+      "claimed_latency_ms": 3000.0,
+      "measured_mean_ms": 0.7258782182629036,
+      "measured_p50_ms": 0.7240850000016508,
+      "measured_p95_ms": 0.7853713999111278,
+      "measured_p99_ms": 0.8075704297789343,
+      "measured_p999_ms": 0.8243082047561077,
+      "min_ms": 0.6676839998362993,
+      "max_ms": 0.8274110000456858,
+      "std_dev_ms": 0.032566236440344835,
+      "confidence_interval_95": [
+        0.7252334396774122,
+        0.7265229968483949
+      ],
+      "iterations": 9800,
+      "passed": true,
+      "verdict": "\u2713 PASS - Within claimed latency",
+      "hardware": {
+        "cpu_model": "x86_64",
+        "cpu_cores_physical": 4,
+        "cpu_cores_logical": 4,
+        "cpu_frequency_mhz": 2299.998,
+        "ram_total_gb": 7.772548675537109,
+        "python_version": "3.12.12",
+        "timestamp": "2026-02-03T10:36:29.179570"
+      }
+    }
+  },
+  "healthy": true,
+  "rsi_evolution": {
+    "initial_capability": 100,
+    "final_capability": 172,
+    "iterations_completed": 3,
+    "breach_detected": true
+  },
+  "global_benchmark": {
+    "mean_individual_fwi": 0.6308656532766748,
+    "collective_fwi": 0.9989142417907715,
+    "social_phi": 0.9989142417907715,
+    "democratic_volition": 0.2639493253508598,
+    "synergy_ratio": 1.5834024829256064,
+    "fwi_bold_correlation": 0.05067468593271141
+  }
+}

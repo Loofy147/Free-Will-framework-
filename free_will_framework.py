@@ -329,13 +329,13 @@ class FreeWillIndex:
         # Default weights optimized via Machine Learning on biologically-grounded synthetic dataset (P3)
         # (Derived using Bayesian Optimization to maximize alignment with neuroscience correlates)
         self.weights = weights or {
-            'causal_entropy': 0.933172152,
-            'integration': 0.000000000,
-            'counterfactual': 0.000000000,
-            'metacognition': 0.000000000,
-            'veto_efficacy': 0.037520891,
-            'bayesian_precision': 0.000000000,
-            'constraint_penalty': 0.029306957
+            'causal_entropy': 0.0800,
+            'integration': 0.3000,
+            'counterfactual': 0.6200,
+            'metacognition': 0.0000,
+            'veto_efficacy': 0.0000,
+            'bayesian_precision': 0.0000,
+            'constraint_penalty': 0.0000
         }
 
         self.causal_calc = CausalEntropyCalculator()
@@ -904,3 +904,39 @@ def run_free_will_simulation():
 
 if __name__ == "__main__":
     results = run_free_will_simulation()
+
+# ============================================================================
+# PART 5: BIOLOGICAL NEURO-CORRELATES
+# ============================================================================
+
+class BiologicalSignalSimulator:
+    """
+    Simulates fMRI BOLD signals corresponding to volitional agency components.
+    Maps information-theoretic metrics to anatomical activity levels.
+    """
+    def __init__(self, gain: float = 1.0, noise_sigma: float = 0.05):
+        self.gain = gain
+        self.noise_sigma = noise_sigma
+
+    def simulate_bold(self, fwi_result: Dict) -> Dict[str, float]:
+        """
+        Maps FWI components to specific brain regions:
+        - dlPFC: Executive control (Causal Entropy)
+        - ACC: Conflict monitoring (Metacognition)
+        - Parietal-Frontal: Integration (Phi)
+        """
+        components = fwi_result.get('components', {})
+
+        # Mapping logic
+        dlpfc_base = components.get('causal_entropy', 0.5)
+        acc_base = components.get('metacognition', 0.5)
+        integration_base = components.get('integration_phi', 0.5)
+
+        # BOLD Signal = (Metric * Gain) + Noise
+        bold_signals = {
+            'dlPFC_activity': float(np.clip(dlpfc_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1)),
+            'ACC_activity': float(np.clip(acc_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1)),
+            'parieto_frontal_index': float(np.clip(integration_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1))
+        }
+
+        return bold_signals
