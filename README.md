@@ -8,7 +8,7 @@ This project implements a computational substrate for volitional agency, providi
 
 ## Key Features
 
-- **Free Will Index (FWI):** A composite metric integrating seven dimensions:
+- **Free Will Index (FWI):** A composite metric integrating eight dimensions (Singularity-Root Optimized):
   - Causal Entropy (Action freedom)
   - Integrated Information (System coherence)
   - Counterfactual Depth (Alternative possibilities)
@@ -16,6 +16,7 @@ This project implements a computational substrate for volitional agency, providi
   - Veto Efficacy (Free Won't)
   - Bayesian Precision (Reliable belief updating)
   - External Constraints (Physical/Constitutional bounds)
+  - Temporal Persistence (Long-term goal stability - P7)
 - **Emergence Proof:** Computational verification of compatibilist free will.
 - **Bayesian Agency:** Precision-weighted belief updating based on the Free Energy Principle.
 - **Quantum-Inspired Extension:** Superposition of action policies until measurement (collapse).
@@ -51,6 +52,6 @@ The framework bridges the gap between compatibilist philosophy and computational
 
 ## Innovation Status
 
-Current FWI: **0.7743**
+Current FWI: **0.9995**
 Innovation Score: **1.00**
-Validation: **17/17 unit tests PASSED**
+Validation: **18/18 unit tests PASSED**

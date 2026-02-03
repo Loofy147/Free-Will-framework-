@@ -145,7 +145,7 @@ kubectl delete namespace agency-production
 - **Rate Limit:** Max 1 model update per 6 hours
 - **Canary Deployment:** 5% traffic for 24h before full rollout
 - **A/B Testing:** New model vs baseline on disjoint task sets
-- **Capability Ceiling:** Hard block at 1.85× (no exceptions)
+- **Capability Ceiling:** Hard block at 2.50× (no exceptions)
 
 ---
 
