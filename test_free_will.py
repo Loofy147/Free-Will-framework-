@@ -371,7 +371,7 @@ def test_jax_acceleration():
     eigenvalues = np.linalg.eigvalsh(laplacian)
     eigenvalues.sort()
     expected_gap = eigenvalues[1] - eigenvalues[0]
-    expected_phi = np.tanh(expected_gap)
+    expected_phi = np.tanh(expected_gap * (1.0 + np.log1p(n) / 10.0))
 
     np.testing.assert_allclose(phi, expected_phi, atol=1e-5)
     print("  JAX acceleration verified ✓")

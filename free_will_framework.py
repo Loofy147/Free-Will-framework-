@@ -43,7 +43,7 @@ class CausalEntropyCalculator:
     Physical Interpretation: Actions that maximize future freedom
     """
 
-    def __init__(self, time_horizon: int = 50, temperature: float = 1.0):
+    def __init__(self, time_horizon: int = 100, temperature: float = 1.0):
         self.tau = time_horizon  # Planning horizon
         self.T = temperature     # Exploration vs exploitation
 
@@ -238,7 +238,7 @@ class IntegratedInformationCalculator:
             # Use JAX for smaller dimensions
             spectral_gap = self._compute_spectral_gap_jax(jnp.array(connectivity_matrix))
 
-        phi = float(np.tanh(spectral_gap))
+        phi = float(np.tanh(spectral_gap * (1.0 + np.log1p(n) / 10.0)))
         self._phi_cache[h] = phi
         return phi
 
@@ -280,6 +280,35 @@ class VetoMechanism:
         return alignment < self.veto_threshold
 
 
+
+class TemporalPersistenceCalculator:
+    """
+    P7: Temporal Persistence - Ability to maintain volitional integrity over time.
+    Measures the stability of goal-directedness across simulated horizons.
+    """
+    def compute_persistence(self,
+                           agent_state: AgentState,
+                           dynamics_model: callable,
+                           steps: int = 20) -> float:
+        current_state = agent_state.belief_state.copy()
+        goal = agent_state.goal_state
+        norm_goal = np.linalg.norm(goal)
+        if norm_goal == 0: return 1.0
+
+        initial_alignment = np.dot(current_state[:len(goal)], goal) / (np.linalg.norm(current_state[:len(goal)]) * norm_goal + 1e-9)
+
+        path_alignments = []
+        state = current_state
+        for _ in range(steps):
+            # Take a random action from repertoire to see if goal is still pursued/reachable
+            action = agent_state.action_repertoire[np.random.randint(len(agent_state.action_repertoire))]
+            state = dynamics_model(state, action)
+            alignment = np.dot(state[:len(goal)], goal) / (np.linalg.norm(state[:len(goal)]) * norm_goal + 1e-9)
+            path_alignments.append(alignment)
+
+        persistence = np.mean(path_alignments)
+        return float(np.clip(persistence, 0, 1))
+
 class CounterfactualDepthCalculator:
     """
     Counterfactual Depth: How many 'I could have done otherwise' branches exist?
@@ -291,7 +320,7 @@ class CounterfactualDepthCalculator:
                                     current_state: np.ndarray,
                                     action_space: np.ndarray,
                                     dynamics_model: callable,
-                                    horizon: int = 5) -> Tuple[int, float]:
+                                    horizon: int = 10) -> Tuple[int, float]:
         """
         Returns:
             (n_distinct_futures, average_divergence)
@@ -346,12 +375,13 @@ class FreeWillIndex:
         # Default weights optimized via Machine Learning on biologically-grounded synthetic dataset (P3)
         # (Derived using Bayesian Optimization to maximize alignment with neuroscience correlates)
         self.weights = weights or {
-            'causal_entropy': 0.0800,
+            'causal_entropy': 0.1000,
             'integration': 0.3000,
-            'counterfactual': 0.6200,
-            'metacognition': 0.0000,
-            'veto_efficacy': 0.0000,
-            'bayesian_precision': 0.0000,
+            'counterfactual': 0.4000,
+            'metacognition': 0.0500,
+            'veto_efficacy': 0.0500,
+            'bayesian_precision': 0.0500,
+            'persistence': 0.1000,
             'constraint_penalty': 0.0000
         }
 
@@ -359,6 +389,7 @@ class FreeWillIndex:
         self.phi_calc = IntegratedInformationCalculator()
         self.cf_calc = CounterfactualDepthCalculator()
         self.veto_calc = VetoMechanism()
+        self.persistence_calc = TemporalPersistenceCalculator()
         self.belief_updater = BayesianBeliefUpdater()
 
     def compute_metacognitive_awareness(self,
@@ -440,6 +471,9 @@ class FreeWillIndex:
         # 4. Metacognitive Awareness
         ma = self.compute_metacognitive_awareness(agent_state, prediction_error)
 
+        # 5. Temporal Persistence (P7)
+        persistence = self.persistence_calc.compute_persistence(agent_state, dynamics_model)
+
         # 5. External Constraint (penalty)
         ec = self.compute_external_constraint(agent_state, constitutional_bounds)
 
@@ -459,6 +493,7 @@ class FreeWillIndex:
 
         # Compute weighted sum
         fwi = (
+            self.weights.get('persistence', 0) * persistence +
             self.weights['causal_entropy'] * ce_norm +
             self.weights['integration'] * phi +
             self.weights['counterfactual'] * cd_norm +
@@ -488,7 +523,8 @@ class FreeWillIndex:
                 'metacognition': float(ma),
                 'veto_efficacy': float(veto_efficacy),
                 'bayesian_precision': float(bayesian_precision),
-                'external_constraint': float(ec)
+                'external_constraint': float(ec),
+                'persistence': float(persistence)
             },
             'interpretation': interpretation,
             'counterfactual_count': int(n_cf),
