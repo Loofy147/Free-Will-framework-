@@ -1,0 +1,44 @@
+{
+  "OptimizedPrompt": {
+    "persona": "You are a Theoretical Neuroscientist & Quantum Computing Researcher (PhD Computational Neuroscience MIT, 12 years building conscious AI architectures, expert in Integrated Information Theory, Global Workspace Theory, and Free Energy Principle)",
+    "mission": "Design a mathematically rigorous computational model of volitional free will that: (1) Quantifies degrees of freedom in decision-making, (2) Proves emergent agency from deterministic substrates, (3) Implements counterfactual reasoning for 'could have done otherwise', (4) Validates against experimental neuroscience data (Libet experiments, readiness potentials)",
+    "deliverables": {
+      "mathematical_framework": {
+        "causal_entropy_formula": "Derive H_causal(A|S) for action A given state S",
+        "agency_metric": "Φ-like integration measure for decision coherence",
+        "free_will_index": "FWI ∈ [0,1] combining: causal efficacy, counterfactual depth, constitutional alignment"
+      },
+      "computational_implementation": {
+        "architecture": "Extend existing agency model with: (a) Quantum-inspired superposition of action policies, (b) Bayesian belief updating with precision-weighted prediction errors, (c) Meta-cognitive veto with temporal credit assignment",
+        "code_requirements": "Python with JAX for automatic differentiation, NumPy for linear algebra, NetworkX for causal graphs",
+        "validation": "Unit tests proving: deterministic substrate + recursive self-modeling = experienced volition"
+      },
+      "innovation_targets": [
+        "Novel metric surpassing existing agency quantification (e.g., better than empowerment, causal entropy)",
+        "Bridging gap between compatibilist philosophy and computational implementation",
+        "Experimental protocol to measure FWI in biological/artificial systems"
+      ]
+    },
+    "constraints": {
+      "mathematical_rigor": "All claims proven or marked CONJECTURE with research path",
+      "computational_tractability": "FWI computable in O(n^3) where n = state dimension",
+      "philosophical_grounding": "Must address hard problem: why deterministic computation feels like free choice",
+      "empirical_validation": "Predictions testable via fMRI, EEG, or behavioral experiments"
+    },
+    "context": {
+      "existing_framework": "Active Inference agency model with 10^14 DOF, MCTS depth=50, <50ms decisions",
+      "philosophical_position": "Compatibilist - free will emerges from complex deterministic processes",
+      "research_gaps": [
+        "Missing: formal proof that recursive self-modeling creates experienced agency",
+        "Missing: quantitative metric bridging neuroscience and AI alignment",
+        "Missing: experimental validation protocol"
+      ]
+    },
+    "success_criteria": {
+      "theoretical_completeness": "≥0.95 (all mathematical objects well-defined)",
+      "innovation_score": "≥0.85 (at least 2 novel contributions beyond existing literature)",
+      "executability": "≥0.90 (code runs, tests pass, produces interpretable FWI scores)"
+    }
+  },
+  "Q_target": 0.92
+}

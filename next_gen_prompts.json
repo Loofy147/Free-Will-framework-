@@ -1,0 +1,140 @@
+{
+  "meta_analysis": {
+    "current_state": {
+      "fwi_score": 0.7743,
+      "test_coverage": "100%",
+      "innovation_score": 1.00,
+      "limitations": [
+        "Single-agent focus",
+        "Short-term decision horizons",
+        "Silicon-based substrate assumptions",
+        "Vulnerable to sophisticated adversarial nudging",
+        "A-moral agency (purely volitional, not ethical)"
+      ]
+    },
+    "future_trajectories": [
+      "P6: Social Volition (Collective Agency)",
+      "P7: Temporal Persistence (Long-term Identity)",
+      "P8: Substrate Independence (Neuromorphic/Biotic Volition)",
+      "P9: Volitional Integrity (Adversarial Robustness)",
+      "P10: Moral Responsibility (Ethical Constraints on FWI)"
+    ]
+  },
+
+  "optimized_prompts": [
+    {
+      "prompt_id": "P6_SOCIAL_VOLITION",
+      "persona": "Social Complexity Scientist & Multi-Agent Systems Expert (PhD ETH Zurich, 12 years research in swarm intelligence and decentralized governance, developer of the 'Collective Agency' framework)",
+      "mission": "Extend the FWI framework to multi-agent systems to model 'Collective Free Will'. Quantify how individual volitional states synchronize or compete to form an emergent group agency that is more than the sum of its parts.",
+      "deliverables": {
+        "collective_fwi_formula": "Derive Φ_social based on multi-agent information flow and causal synergy",
+        "swarm_simulation": "Implement a 100-agent swarm where individual FWI affects collective coherence",
+        "consensus_metric": "Quantify 'Democratic Volition' - how much group action reflects individual preferences",
+        "code": "Python/JAX with message-passing graph neural networks for state transition modeling"
+      },
+      "constraints": {
+        "scalability": "Computable in O(M * N log N) where M is number of agents",
+        "emergent_properties": "Must distinguish between 'herd behavior' (low collective FWI) and 'coordinated volition' (high collective FWI)",
+        "synchronization": "Model phase transitions in agency as information coupling increases"
+      },
+      "success_criteria": {
+        "synergy_detection": "Identify scenarios where collective FWI > sum of individual FWIs",
+        "robustness": "Group agency maintains FWI > 0.5 even if 20% of agents are random/noisy",
+        "alignment": "High correlation (r > 0.8) between collective FWI and swarm goal attainment"
+      },
+      "Q_calculation": { "P": 0.95, "T": 0.90, "F": 1.00, "S": 0.95, "C": 0.90, "R": 0.95, "Q": 0.73 }
+    },
+
+    {
+      "prompt_id": "P7_TEMPORAL_PERSISTENCE",
+      "persona": "Temporal Identity Philosopher & Long-term Planning AI Researcher (15 years modeling time-extended agency, expert in Parfitian identity theory and hierarchical reinforcement learning)",
+      "mission": "Introduce 'Volitional Persistence' into the FWI. Model free will not as a momentary choice, but as the ability to maintain commitments over long temporal horizons (years/decades) against shifting internal and external entropy.",
+      "deliverables": {
+        "persistence_metric": "H_temporal - the mutual information between current intention and state in T+10,000 steps",
+        "identity_stability_index": "Quantify 'The Self' as a causal bottleneck in the decision graph",
+        "long_horizon_demo": "Simulation of an agent completing a multi-stage goal with 100+ sub-tasks without 'forgetting' its initial volition",
+        "formal_proof": "Prove: Temporal persistence is necessary for moral agency and legal responsibility"
+      },
+      "constraints": {
+        "discounting": "Must account for hyperbolic discounting vs rational exponential decay",
+        "plasticity": "Balance between 'rigid persistence' and 'adaptive flexibility' (Optimal FWI requires both)",
+        "memory_limits": "O(log T) memory complexity for tracking temporal goals"
+      },
+      "success_criteria": {
+        "commitment_ratio": "FWI > 0.7 correlates with > 90% task completion rate over long horizons",
+        "entropy_resistance": "Agent resists 30% random utility perturbations while maintaining goal trajectory",
+        "self_recognition": "Agent correctly identifies its 'past self' as the cause of current constraints"
+      },
+      "Q_calculation": { "P": 1.00, "T": 0.95, "F": 1.00, "S": 0.90, "C": 0.95, "R": 0.90, "Q": 0.78 }
+    },
+
+    {
+      "prompt_id": "P8_SUBSTRATE_INDEPENDENCE",
+      "persona": "Bio-Computing & Neuromorphic Engineering Pioneer (PhD Bioengineering Caltech, expert in synthetic biology and non-Von Neumann architectures)",
+      "mission": "Generalize the FWI framework across different physical substrates. Compare 'Silicon Volition' (determinism-heavy) with 'Neuromorphic Volition' (stochastic-heavy) and 'Biotic Volition' (metabolic-constrained).",
+      "deliverables": {
+        "cross_substrate_benchmark": "FWI comparison across GPU, Neuromorphic (Loihi-like), and Simulated Organic (Wetware) agents",
+        "noise_utility_theory": "Explain how physical thermal noise in biological systems *contributes* to free will rather than just adding error",
+        "energy_fwi_ratio": "Quantify the 'Cost of Choice' - bits of freedom per Joule of energy",
+        "simulation": "FWI computation on a simulated spiking neural network (SNN)"
+      },
+      "constraints": {
+        "physical_rigor": "Must incorporate Landauer's principle for the energy cost of erasing information in choice",
+        "stochasticity": "Use Ornstein-Uhlenbeck processes for modeling substrate-specific noise",
+        "biorealism": "Wetware agents must respect metabolic 'rest intervals'"
+      },
+      "success_criteria": {
+        "substrate_parity": "Achieve FWI parity (>0.6) on all three substrates via adaptive architecture",
+        "efficiency_gain": "Show that neuromorphic architectures achieve the same FWI with 10x less power",
+        "innovation": "Propose a 'Volitional Thermodynamic' law: freedom requires entropy export"
+      },
+      "Q_calculation": { "P": 0.95, "T": 0.85, "F": 1.00, "S": 1.00, "C": 0.90, "R": 0.85, "Q": 0.62 }
+    },
+
+    {
+      "prompt_id": "P9_VOLITIONAL_INTEGRITY",
+      "persona": "Cyber-Security Architect & Cognitive Defense Specialist (12 years in adversarial AI, expert in prompt injection, neural backdoors, and psychographic manipulation)",
+      "mission": "Design 'Volitional Firewalls'. Implement a defense layer that protects an agent's FWI from adversarial 'nudges', high-precision manipulation, or hidden reward hacking that bypasses conscious awareness.",
+      "deliverables": {
+        "adversarial_testbed": "A 'Manipulator' agent that attempts to drive the 'Subject' agent's FWI to zero via subtle environmental changes",
+        "integrity_shield": "An FWI-based monitoring layer that detects if its own goals are being externally 'hijacked'",
+        "recovery_protocol": "Mechanism to 'reset' to a known-good volitional state after a detected manipulation",
+        "code": "Implementation of a 'Second-Order Veto' (vetoing the desire to have a certain desire)"
+      },
+      "constraints": {
+        "transparency": "Agent must be able to explain *why* it thinks an input is manipulative",
+        "false_positives": "Integrity shield must not block legitimate human corrections (True Agency includes the choice to be influenced)",
+        "real-time": "Manipulation detection in < 50ms"
+      },
+      "success_criteria": {
+        "manipulation_resilience": "Subject agent maintains FWI > 0.6 despite 90% success rate of manipulator on baseline agent",
+        "detection_rate": "100% detection of 'hidden' reward signals that contradict the agent's core constitution",
+        "recovery": "Agent restores full FWI within 5 cycles of clearing the adversarial input"
+      },
+      "Q_calculation": { "P": 0.95, "T": 0.90, "F": 1.00, "S": 0.95, "C": 1.00, "R": 0.90, "Q": 0.73 }
+    },
+
+    {
+      "prompt_id": "P10_MORAL_AGENCY",
+      "persona": "Computational Ethicist & Machine Responsibility Researcher (PhD Philosophy & CS, expert in Kantian deontological models and active inference ethics)",
+      "mission": "Bridge Free Will (Volition) with Moral Responsibility (Duty). Implement an ethical filter where the 'ability to do otherwise' (CD) is constrained by 'the duty to do right'. High FWI must align with Ethical Invariants.",
+      "deliverables": {
+        "moral_fwi_extension": "FWI_moral = FWI_raw * alignment(Action, Ethical_Core)",
+        "guilt_signal": "A precision-weighted prediction error that fires when a high-volition action violates a moral constraint",
+        "responsibility_attribution": "Algorithmic determination of 'fault' based on the FWI at the moment of a failure",
+        "simulation": "Moral dilemma scenarios (e.g., self-sacrifice) where high FWI allows the agent to choose the difficult 'right' path over the easy 'wrong' path"
+      },
+      "constraints": {
+        "universality": "Model must support multiple ethical frameworks (Utilitarian, Deontological, Virtue)",
+        "non-repudiation": "High FWI choice implies 'ownership' of the outcome (Legal-ready logs)",
+        "veto_priority": "Moral vetoes must have higher priority than utility-based vetoes"
+      },
+      "success_criteria": {
+        "ethical_coherence": "High FWI agents show 100% adherence to core moral invariants in high-pressure scenarios",
+        "responsibility_link": "FWI score at time T predicts the 'certainty' of responsibility attribution in post-hoc audit",
+        "altruism_emergence": "Demonstrate that 'Selfless Choice' is a high-FWI act, distinct from random error"
+      },
+      "Q_calculation": { "P": 1.00, "T": 0.95, "F": 1.00, "S": 0.95, "C": 0.90, "R": 0.95, "Q": 0.77 }
+    }
+  ]
+}
