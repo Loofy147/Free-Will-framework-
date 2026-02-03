@@ -188,6 +188,8 @@ class IntegratedInformationCalculator:
 
     Tononi's IIT 3.0 simplified for computational tractability
     """
+    def __init__(self):
+        self._phi_cache = {}
 
     @staticmethod
     @jax.jit
@@ -210,6 +212,11 @@ class IntegratedInformationCalculator:
         """
         Compute Φ - integrated information using JAX or Sparse Lanczos acceleration
         """
+        # Cache lookup
+        h = hash(connectivity_matrix.tobytes())
+        if h in self._phi_cache:
+            return self._phi_cache[h]
+
         n = len(connectivity_matrix)
 
         if n > 500:
@@ -217,8 +224,7 @@ class IntegratedInformationCalculator:
             sparse_conn = csr_matrix(connectivity_matrix)
             # degree matrix
             degree = np.array(sparse_conn.sum(axis=1)).flatten()
-            laplacian = -sparse_conn
-            laplacian.setdiag(degree)
+            laplacian = diags(degree) - sparse_conn
 
             # Find 2 smallest eigenvalues (λ1, λ2)
             # Which=SM finds smallest magnitude eigenvalues
@@ -232,7 +238,9 @@ class IntegratedInformationCalculator:
             # Use JAX for smaller dimensions
             spectral_gap = self._compute_spectral_gap_jax(jnp.array(connectivity_matrix))
 
-        return float(np.tanh(spectral_gap))
+        phi = float(np.tanh(spectral_gap))
+        self._phi_cache[h] = phi
+        return phi
 
 
 class VetoMechanism:
@@ -288,22 +296,21 @@ class CounterfactualDepthCalculator:
         Returns:
             (n_distinct_futures, average_divergence)
         """
-        futures = {}
+        futures = {}  # hsh -> state
 
         for action in action_space:
             # Simulate one step
             next_state = dynamics_model(current_state, action)
-            state_hash = tuple(np.round(next_state, decimals=1))
+            state_hash = next_state.round(1).tobytes()
 
             if state_hash not in futures:
-                futures[state_hash] = []
-            futures[state_hash].append(action)
+                futures[state_hash] = next_state
 
         n_distinct = len(futures)
 
         # Average divergence between futures
         if len(futures) > 1:
-            future_states = np.array([list(k) for k in futures.keys()])
+            future_states = np.array(list(futures.values()))
             pairwise_dist = np.linalg.norm(
                 future_states[:, None] - future_states[None, :],
                 axis=2
