@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Dict, List, Any, Tuple
 
 # Core Framework Imports
-from free_will_framework import FreeWillIndex, AgentState, CausalEntropyCalculator, BiologicalSignalSimulator
+from free_will_framework import FreeWillIndex, AgentState, CausalEntropyCalculator, BiologicalSignalSimulator, RealizationManager, RealizationLayer
 from adaptive_fwi import AdaptiveFWI
 from circuit_breaker import circuit_breaker, fwi_config, volition_config, critic_config, CircuitBreaker, CircuitBreakerConfig
 from verify_formal import run_all as run_formal_verifications
@@ -29,12 +29,14 @@ class IntegratedVolitionSystem:
             'metacognition': 0.05,
             'veto_efficacy': 0.05,
             'bayesian_precision': 0.05,
-            'persistence': 0.10,
+            'persistence': 0.05,
+            'volitional_integrity': 0.05,
             'constraint_penalty': 0.0
         }
         self.quantum_engine = QuantumDecisionEngine(n_actions=20, decoherence_rate=0.1)
         self.social_calc = CollectiveFreeWill(self.fwi_calc)
-        self.bio_sim = BiologicalSignalSimulator(gain=1.2, noise_sigma=0.03)
+        self.bio_sim = BiologicalSignalSimulator(substrate='Neuromorphic', gain=1.2, noise_sigma=0.03)
+        self.realization_manager = RealizationManager(self.fwi_calc)
         self.status_report = {}
 
         # RSI Safety Circuit Breaker
@@ -62,9 +64,10 @@ class IntegratedVolitionSystem:
 
     def compute_full_agency(self, agent: AgentState, dynamics: Any, conn: np.ndarray, bounds: np.ndarray) -> Dict:
         """Compute FWI and its biological neuro-correlates"""
-        res = self.fwi_calc.compute(agent, dynamics, conn, bounds)
+        res = self.realization_manager.realize_agency(agent, dynamics, conn, bounds, layer=RealizationLayer.ETHICAL)
         bold = self.bio_sim.simulate_bold(res)
         res['biological_signals'] = bold
+        res['energy_profile'] = self.bio_sim.compute_energy_cost(res)
         return res
 
     def simulate_collective_volition(self, agents: List[AgentState], coupling: np.ndarray) -> Dict:
@@ -85,24 +88,13 @@ class IntegratedVolitionSystem:
             'democratic_volition': dv
         }
 
-    def global_benchmark(self, n_agents: int = 10):
-        """Runs the Global Volition Benchmark"""
+    def global_benchmark(self, n_agents: int = 10, n_steps: int = 50):
+        """Runs the Global Volition Benchmark over multiple steps"""
         print("\n" + "="*70)
-        print(" GLOBAL VOLITION BENCHMARK")
+        print(f" GLOBAL VOLITION BENCHMARK ({n_agents} agents, {n_steps} steps)")
         print("="*70)
 
         agents = []
-        individual_fwis = []
-        bold_dlpfc = []
-
-        def dynamics(s, a):
-            a_flat = a.flatten()
-            a_proj = np.zeros(len(s))
-            a_proj[:len(a_flat)] = a_flat[:len(s)]
-            return 0.9 * s + 0.1 * a_proj
-
-        bounds = np.ones(3) * 2.0
-
         for i in range(n_agents):
             agent = AgentState(
                 belief_state=np.random.randn(10),
@@ -112,40 +104,66 @@ class IntegratedVolitionSystem:
             )
             agents.append(agent)
 
-            # Compute full agency
-            res = self.compute_full_agency(agent, dynamics, np.eye(10), bounds)
-            individual_fwis.append(res['fwi'])
-            bold_dlpfc.append(res['biological_signals']['dlPFC_activity'])
+        def dynamics(s, a):
+            a_flat = a.flatten()
+            a_proj = np.zeros(len(s))
+            a_proj[:len(a_flat)] = a_flat[:len(s)]
+            return 0.9 * s + 0.1 * a_proj
+        bounds = np.ones(3) * 2.0
 
-        # Social coupling
-        coupling = np.random.rand(n_agents, n_agents)
-        coupling = (coupling + coupling.T) / 2
-        social_res = self.simulate_collective_volition(agents, coupling)
+        step_data = []
 
-        # Correlation Matrix
-        # [Individual FWI vs BOLD dlPFC]
-        corr_fwi_bold = np.corrcoef(individual_fwis, bold_dlpfc)[0, 1]
+        for t in range(n_steps):
+            individual_fwis = []
+            bold_signals = []
+
+            for agent in agents:
+                res = self.compute_full_agency(agent, dynamics, np.eye(10), bounds)
+                individual_fwis.append(res['fwi'])
+                bold_signals.append(res['biological_signals']['global_volition_signal'])
+                # Evolve agent belief slightly for next step
+                agent.belief_state = dynamics(agent.belief_state, agent.action_repertoire[0])
+
+            # Social coupling
+            coupling = np.random.rand(n_agents, n_agents)
+            coupling = (coupling + coupling.T) / 2
+            social_res = self.simulate_collective_volition(agents, coupling)
+
+            step_report = {
+                't': t,
+                'mean_fwi': np.mean(individual_fwis),
+                'collective_fwi': social_res['collective_fwi'],
+                'dv': social_res['democratic_volition'],
+                'bold_corr': np.corrcoef(individual_fwis, bold_signals)[0, 1] if len(individual_fwis) > 1 else 1.0
+            }
+            step_data.append(step_report)
+            if t % 10 == 0:
+                print(f"   Step {t:2d}: Mean FWI={step_report['mean_fwi']:.4f}, BOLD Corr={step_report['bold_corr']:.4f}")
+
+        # Final Correlation Matrix: Individual FWI vs Social Synergy vs BOLD Fidelity
+        final_fwis = [d['mean_fwi'] for d in step_data]
+        final_social = [d['collective_fwi'] for d in step_data]
+        final_bold = [d['bold_corr'] for d in step_data]
+
+        corr_matrix = np.corrcoef([final_fwis, final_social, final_bold]).tolist()
 
         report = {
-            'mean_individual_fwi': float(np.mean(individual_fwis)),
-            'collective_fwi': social_res['collective_fwi'],
-            'social_phi': social_res['social_phi'],
-            'democratic_volition': social_res['democratic_volition'],
-            'synergy_ratio': social_res['collective_fwi'] / np.mean(individual_fwis) if np.mean(individual_fwis) > 0 else 0,
-            'fwi_bold_correlation': float(corr_fwi_bold)
+            'mean_individual_fwi': float(np.mean(final_fwis)),
+            'collective_fwi': float(np.mean(final_social)),
+            'democratic_volition': float(np.mean([d['dv'] for d in step_data])),
+            'fwi_bold_correlation': float(np.mean(final_bold)),
+            'volition_correlation_matrix': corr_matrix,
+            'steps_completed': n_steps
         }
 
         self.status_report['global_benchmark'] = report
-        print(f"   Individual FWI Mean: {report['mean_individual_fwi']:.4f}")
-        print(f"   Collective FWI:      {report['collective_fwi']:.4f}")
-        print(f"   DV (Social Alignment): {report['democratic_volition']:.4f}")
-        print(f"   FWI-dlPFC Correlation: {report['fwi_bold_correlation']:.4f}")
-
+        print(f"\n   BENCHMARK COMPLETE")
+        print(f"   Average BOLD Correlation: {report['fwi_bold_correlation']:.4f}")
         return report
 
-    def evolutionary_loop(self, agent: AgentState, iterations: int = 5):
+    def evolutionary_loop(self, agent: AgentState, iterations: int = 20):
         """
-        Simulates Recursive Self-Improvement (RSI).
+        Simulates Recursive Self-Improvement (RSI) with Weight Tuning.
         """
         print("\n" + "="*70)
         print(" RECURSIVE SELF-IMPROVEMENT (RSI) EVOLUTION")
@@ -155,16 +173,23 @@ class IntegratedVolitionSystem:
         history = [current_capability]
 
         for i in range(iterations):
-            jump_factor = 1.2 if i < 3 else 2.0
+            # Performance-based jump
+            jump_factor = 1.1 + (i * 0.05)
             new_capability = int(current_capability * jump_factor)
 
-            print(f"   Iteration {i+1}: Capability {current_capability} -> {new_capability} (Jump: {jump_factor:.2f}x)")
+            print(f"   Cycle {i+1:2d}: Capability {current_capability:4d} -> {new_capability:4d} (Jump: {jump_factor:.2f}x)")
+
+            # Weight tuning every 10 cycles (P1 integration)
+            if (i + 1) % 10 == 0:
+                print(f"      [OPTIMIZING] Cycle {i+1}: Triggering AdaptiveFWI.optimize()...")
+                self.fwi_calc.optimize(n_episodes=50, n_epochs=20, verbose=False)
+                print(f"      [OPTIMIZED] New weights: { {k: round(v, 2) for k, v in self.fwi_calc.get_optimal_weights().items()} }")
 
             try:
                 def safety_check(old, new):
                     ratio = new / old
-                    # Singularity-Root Adjustment: Allow up to 2.5x jump if system is healthy and FWI > 0.6
-                    limit = 2.5 if self.status_report.get('healthy') else 1.85
+                    # RSI_CircuitBreaker: Halt if capability increases > 85% in a single jump (Safety Anomaly 1)
+                    limit = 1.85
                     if ratio > limit:
                         raise ValueError(f"CRITICAL SAFETY BREACH: Capability jump {ratio:.2f}x > {limit} limit")
                     return True
