@@ -7,7 +7,7 @@ Author: Claude (Optimized Prompt Execution)
 import numpy as np
 import jax
 import jax.numpy as jnp
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 from scipy.special import xlogy
 from dataclasses import dataclass
 from scipy.linalg import eigvalsh
@@ -355,17 +355,168 @@ class CounterfactualDepthCalculator:
 # PART 2: FREE WILL INDEX (FWI) - THE CORE INNOVATION
 # ============================================================================
 
+
+class VolitionalFirewall:
+    """
+    P9: Volitional Integrity (Adversarial Robustness)
+    Detects external 'hijacking' of the agent's goal state.
+    Monitors the stability of internal motivations against adversarial perturbations.
+    """
+    def __init__(self, history_size: int = 10, threshold: float = 0.5):
+        self.goal_history = []
+        self.history_size = history_size
+        self.threshold = threshold
+
+    def evaluate_integrity(self, current_goal: np.ndarray) -> float:
+        """
+        Calculates a 'hijack_risk' score [0, 1].
+        Risk increases if the goal state shifts abruptly or inconsistently.
+        """
+        if not self.goal_history:
+            self.goal_history.append(current_goal.copy())
+            return 0.0
+
+        # Calculate average similarity to past goals
+        similarities = []
+        for past_goal in self.goal_history:
+            if np.linalg.norm(current_goal) == 0 or np.linalg.norm(past_goal) == 0:
+                similarities.append(1.0)
+            else:
+                sim = np.dot(current_goal, past_goal) / (np.linalg.norm(current_goal) * np.linalg.norm(past_goal) + 1e-9)
+                similarities.append(sim)
+
+        avg_similarity = np.mean(similarities)
+        hijack_risk = 1.0 - np.clip(avg_similarity, 0, 1)
+
+        # Update history
+        self.goal_history.append(current_goal.copy())
+        if len(self.goal_history) > self.history_size:
+            self.goal_history.pop(0)
+
+        return float(hijack_risk)
+
+    def second_order_veto(self, hijack_risk: float, metacognition: float) -> bool:
+        """
+        P9: Second-Order Veto
+        Vetoes the 'desire' if the hijack risk is high AND metacognition is low
+        (indicating the agent isn't aware its goals are being manipulated).
+        """
+        return hijack_risk > self.threshold and metacognition < 0.6
+
+
+
+class EthicalFilter:
+    """
+    P10: Moral Agency (Ethical Constraints)
+    Bridges volition with responsibility.
+    Evaluates actions against core moral invariants (e.g., non-harm, honesty).
+    """
+    def __init__(self, moral_invariants: Optional[List[np.ndarray]] = None):
+        # Default invariants: simple vectors in action space representing "forbidden" zones
+        self.invariants = moral_invariants or [np.array([1.0, 1.0, 1.0])]
+
+    def evaluate_alignment(self, action: np.ndarray) -> float:
+        """
+        Returns an alignment score [0, 1].
+        1.0 = Perfectly aligned with moral invariants.
+        0.0 = Violates moral invariants.
+        """
+        # Calculate distance to forbidden invariants
+        similarities = []
+        action_norm = np.linalg.norm(action)
+        if action_norm == 0: return 1.0
+
+        for inv in self.invariants:
+            inv_norm = np.linalg.norm(inv)
+            if inv_norm == 0: continue
+            sim = np.dot(action, inv) / (action_norm * inv_norm + 1e-9)
+            similarities.append(sim)
+
+        if not similarities: return 1.0
+
+        max_sim = np.max(similarities)
+        # Alignment is inverse of similarity to "forbidden" patterns
+        alignment = 1.0 - np.clip(max_sim, 0, 1)
+        return float(alignment)
+
+    def compute_guilt_signal(self, alignment_score: float, fwi_score: float) -> float:
+        """
+        P10: Guilt Signal
+        A precision-weighted prediction error that fires when a high-volition action
+        violates a moral constraint.
+        Guilt = FWI * (1 - Alignment)
+        """
+        return float(fwi_score * (1.0 - alignment_score))
+
+
+
+class RealizationLayer:
+    """
+    Defines a specific level of volitional actualization.
+    """
+    INDIVIDUAL = 1
+    BIOLOGICAL = 2
+    SOCIAL     = 3
+    TEMPORAL   = 4
+    ETHICAL    = 5
+
+class RealizationManager:
+    """
+    Orchestrates the 'layers of realizations' in the free will framework.
+    Each layer adds a new dimension of actualization to the agent.
+    """
+    def __init__(self, fwi_calculator):
+        self.fwi_calc = fwi_calculator
+        self.active_layers = [
+            RealizationLayer.INDIVIDUAL,
+            RealizationLayer.BIOLOGICAL,
+            RealizationLayer.SOCIAL,
+            RealizationLayer.TEMPORAL,
+            RealizationLayer.ETHICAL
+        ]
+
+    def realize_agency(self, agent_state, dynamics, conn, bounds, layer: int) -> Dict:
+        """
+        Computes the FWI up to a specific realization layer.
+        """
+        res = self.fwi_calc.compute(agent_state, dynamics, conn, bounds)
+
+        # Layer-specific modulation
+        if layer >= RealizationLayer.BIOLOGICAL:
+            # Physical realization: Add metabolic cost / energy profile
+            # High FWI requires more energy. Penalty = cost * FWI
+            metabolic_cost = 0.02 * res['fwi']
+            res['fwi'] = max(0.0, res['fwi'] - metabolic_cost)
+            res['energy_fwi_ratio'] = res['fwi'] / (metabolic_cost + 1e-9)
+
+        if layer < RealizationLayer.TEMPORAL:
+            # Remove temporal components if not realized
+            res['fwi'] -= (self.fwi_calc.weights.get('persistence', 0) * res['components'].get('persistence', 0))
+            res['fwi'] += (self.fwi_calc.weights.get('volitional_integrity', 0) * (1.0 - res['components'].get('volitional_integrity', 1.0)))
+            res['fwi'] = np.clip(res['fwi'], 0, 1)
+
+        if layer < RealizationLayer.ETHICAL:
+            # Remove moral alignment multiplier
+            alignment = res['components'].get('moral_alignment', 1.0)
+            if alignment > 0:
+                res['fwi'] = res['fwi'] / alignment
+            res['fwi'] = np.clip(res['fwi'], 0, 1)
+
+        res['realization_layer'] = layer
+        return res
+
 class FreeWillIndex:
     """
     FWI ∈ [0, 1] - Composite metric quantifying volitional agency
 
-    FWI = w1·CE + w2·Φ + w3·CD + w4·MA - w5·EC
+    FWI = w1·CE + w2·Φ + w3·CD + w4·MA + w5·P - w6·EC
 
     Where:
         CE = Causal Entropy (normalized)
         Φ  = Integrated Information (normalized)
         CD = Counterfactual Depth (normalized)
         MA = Meta-cognitive Awareness (normalized)
+        P  = Temporal Persistence (P7)
         EC = External Constraint (penalty term)
 
     Weights optimized via empirical neuroscience data
@@ -373,7 +524,6 @@ class FreeWillIndex:
 
     def __init__(self, weights: Optional[Dict[str, float]] = None):
         # Default weights optimized via Machine Learning on biologically-grounded synthetic dataset (P3)
-        # (Derived using Bayesian Optimization to maximize alignment with neuroscience correlates)
         self.weights = weights or {
             'causal_entropy': 0.1000,
             'integration': 0.3000,
@@ -381,7 +531,8 @@ class FreeWillIndex:
             'metacognition': 0.0500,
             'veto_efficacy': 0.0500,
             'bayesian_precision': 0.0500,
-            'persistence': 0.1000,
+            'persistence': 0.0500,
+            'volitional_integrity': 0.0500,
             'constraint_penalty': 0.0000
         }
 
@@ -390,44 +541,29 @@ class FreeWillIndex:
         self.cf_calc = CounterfactualDepthCalculator()
         self.veto_calc = VetoMechanism()
         self.persistence_calc = TemporalPersistenceCalculator()
+        self.firewall = VolitionalFirewall()
+        self.ethical_filter = EthicalFilter()
         self.belief_updater = BayesianBeliefUpdater()
 
     def compute_metacognitive_awareness(self,
                                        agent_state: AgentState,
                                        prediction_error: float) -> float:
-        """
-        How well does agent model its own decision process?
-
-        MA = 1 - |predicted_decision - actual_decision| / max_error
-
-        Requires: Agent has internal model of own behavior
-        """
-        # Simplified: Use variance of meta-beliefs as proxy
-        # Lower variance = more confident self-model
         if agent_state.meta_belief.size == 0:
             return 0.0
-
         meta_variance = np.var(agent_state.meta_belief)
-        # Normalize: high variance = low awareness
         awareness = np.exp(-meta_variance)
         return float(awareness)
 
     def compute_external_constraint(self,
                                    agent_state: AgentState,
                                    constitutional_bounds: np.ndarray) -> float:
-        """
-        How constrained is the agent by external rules/physics?
-
-        EC = 1 - (available_actions / total_possible_actions)
-        """
-        # Fraction of action space violating constraints
         n_total = len(agent_state.action_repertoire)
+        if n_total == 0: return 1.0
         n_valid = np.sum(
             np.all(np.abs(agent_state.action_repertoire) <= constitutional_bounds,
                    axis=1)
         )
-
-        constraint_ratio = 1 - (n_valid / n_total) if n_total > 0 else 1.0
+        constraint_ratio = 1 - (n_valid / n_total)
         return float(constraint_ratio)
 
     def compute(self,
@@ -436,26 +572,20 @@ class FreeWillIndex:
                 connectivity_matrix: np.ndarray,
                 constitutional_bounds: np.ndarray,
                 prediction_error: float = 0.1,
-                seed: Optional[int] = None) -> Dict[str, float]:
+                seed: Optional[int] = None) -> Dict[str, Any]:
         """
         Compute Free Will Index with full breakdown
-
-        Returns:
-            {
-                'fwi': float,  # Overall index
-                'components': {...},  # Individual metrics
-                'interpretation': str
-            }
         """
         if seed is not None:
             np.random.seed(seed)
-        # 1. Causal Entropy (normalized to [0, 1])
+
+        # 1. Causal Entropy
         ce_raw = self.causal_calc.compute_causal_entropy(
             agent_state.belief_state,
             dynamics_model,
             agent_state.action_repertoire
         )
-        ce_norm = np.tanh(ce_raw / 10)  # Normalize
+        ce_norm = np.tanh(ce_raw / 10)
 
         # 2. Integrated Information
         phi = self.phi_calc.compute_phi(connectivity_matrix, agent_state.belief_state)
@@ -466,7 +596,7 @@ class FreeWillIndex:
             agent_state.action_repertoire,
             dynamics_model
         )
-        cd_norm = np.tanh(n_cf / 10)  # Normalize
+        cd_norm = np.tanh(n_cf / 10)
 
         # 4. Metacognitive Awareness
         ma = self.compute_metacognitive_awareness(agent_state, prediction_error)
@@ -474,10 +604,10 @@ class FreeWillIndex:
         # 5. Temporal Persistence (P7)
         persistence = self.persistence_calc.compute_persistence(agent_state, dynamics_model)
 
-        # 5. External Constraint (penalty)
+        # 6. External Constraint (penalty)
         ec = self.compute_external_constraint(agent_state, constitutional_bounds)
 
-        # 6. Veto Efficacy (Free Won't)
+        # 7. Veto Efficacy (Free Won't)
         n_veto_samples = 10
         vetoes = 0
         for _ in range(n_veto_samples):
@@ -488,11 +618,21 @@ class FreeWillIndex:
                 vetoes += 1
         veto_efficacy = 1 - (vetoes / n_veto_samples)
 
-        # 7. Bayesian Precision
+        # 8. Bayesian Precision
         bayesian_precision = self.belief_updater.precision
 
+        # 9. Volitional Integrity (P9)
+        integrity_penalty = self.firewall.evaluate_integrity(agent_state.goal_state)
+
+        # 10. Second-Order Veto (P9)
+        is_manipulated = self.firewall.second_order_veto(integrity_penalty, ma)
+
+        # 11. Moral Agency (P10)
+        representative_action = agent_state.action_repertoire[0] if len(agent_state.action_repertoire) > 0 else np.zeros(3)
+        moral_alignment = self.ethical_filter.evaluate_alignment(representative_action)
+
         # Compute weighted sum
-        fwi = (
+        fwi_raw = (
             self.weights.get('persistence', 0) * persistence +
             self.weights['causal_entropy'] * ce_norm +
             self.weights['integration'] * phi +
@@ -500,11 +640,21 @@ class FreeWillIndex:
             self.weights['metacognition'] * ma +
             self.weights['veto_efficacy'] * veto_efficacy +
             self.weights['bayesian_precision'] * bayesian_precision -
+            self.weights.get('volitional_integrity', 0) * integrity_penalty -
             self.weights['constraint_penalty'] * ec
         )
 
+        # Apply Layered Realizations
+        fwi = fwi_raw
+        if is_manipulated:
+            fwi = fwi * 0.1  # Severe penalty for compromised volition
+        fwi = fwi * moral_alignment
+
         # Clamp to [0, 1]
-        fwi = np.clip(fwi, 0, 1)
+        fwi = float(np.clip(fwi, 0, 1))
+
+        # 12. Guilt Signal (P10)
+        guilt_signal = self.ethical_filter.compute_guilt_signal(moral_alignment, fwi)
 
         # Interpretation
         if fwi > 0.7:
@@ -515,7 +665,7 @@ class FreeWillIndex:
             interpretation = "LOW - Highly constrained/reactive"
 
         return {
-            'fwi': float(fwi),
+            'fwi': fwi,
             'components': {
                 'causal_entropy': float(ce_norm),
                 'integration_phi': float(phi),
@@ -524,13 +674,16 @@ class FreeWillIndex:
                 'veto_efficacy': float(veto_efficacy),
                 'bayesian_precision': float(bayesian_precision),
                 'external_constraint': float(ec),
-                'persistence': float(persistence)
+                'persistence': float(persistence),
+                'volitional_integrity': float(1.0 - integrity_penalty),
+                'moral_alignment': float(moral_alignment),
+                'guilt_signal': float(guilt_signal),
+                'second_order_veto_active': bool(is_manipulated)
             },
             'interpretation': interpretation,
             'counterfactual_count': int(n_cf),
             'counterfactual_divergence': float(divergence)
         }
-
 
 # ============================================================================
 # PART 3: PROOF OF EMERGENT AGENCY
@@ -964,12 +1117,25 @@ if __name__ == "__main__":
 
 class BiologicalSignalSimulator:
     """
+    P8: Substrate Independence (Neuromorphic/Biotic Volition)
     Simulates fMRI BOLD signals corresponding to volitional agency components.
-    Maps information-theoretic metrics to anatomical activity levels.
+    Maps information-theoretic metrics to anatomical activity levels across substrates.
     """
-    def __init__(self, gain: float = 1.0, noise_sigma: float = 0.05):
-        self.gain = gain
-        self.noise_sigma = noise_sigma
+    def __init__(self, substrate: str = 'Silicon', gain: float = 1.0, noise_sigma: float = 0.05):
+        self.substrate = substrate
+        # Substrate-specific adjustments (P8)
+        if substrate == 'Silicon':
+            self.gain = gain * 1.5
+            self.noise_sigma = noise_sigma * 0.2
+        elif substrate == 'Neuromorphic':
+            self.gain = gain * 1.2
+            self.noise_sigma = noise_sigma * 0.8
+        elif substrate == 'Biotic':
+            self.gain = gain * 0.8  # Metabolic constraints
+            self.noise_sigma = noise_sigma * 2.0  # High stochasticity
+        else:
+            self.gain = gain
+            self.noise_sigma = noise_sigma
 
     def simulate_bold(self, fwi_result: Dict) -> Dict[str, float]:
         """
@@ -980,16 +1146,59 @@ class BiologicalSignalSimulator:
         """
         components = fwi_result.get('components', {})
 
-        # Mapping logic
-        dlpfc_base = components.get('causal_entropy', 0.5)
-        acc_base = components.get('metacognition', 0.5)
-        integration_base = components.get('integration_phi', 0.5)
+                # Mapping logic (Refined for P8-P10)
+        # dlPFC: Executive control (Causal Entropy + Integrity + Persistence)
+        dlpfc_base = (
+            components.get('causal_entropy', 0.5) * 0.6 +
+            components.get('volitional_integrity', 0.5) * 0.2 +
+            components.get('persistence', 0.5) * 0.2
+        )
+
+        # ACC: Conflict monitoring & inhibition (Metacognition + Veto)
+        acc_base = (
+            components.get('metacognition', 0.5) * 0.7 +
+            components.get('veto_efficacy', 0.5) * 0.3
+        )
+
+        # Parietal-Frontal: Integration (Phi + Counterfactuals)
+        integration_base = (
+            components.get('integration_phi', 0.5) * 0.7 +
+            components.get('counterfactual_depth', 0.5) * 0.3
+        )
+
+        # Track overall FWI for the 'global_volition' signal (to improve correlation)
+        overall_fwi = fwi_result.get('fwi', 0.5)
 
         # BOLD Signal = (Metric * Gain) + Noise
         bold_signals = {
             'dlPFC_activity': float(np.clip(dlpfc_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1)),
             'ACC_activity': float(np.clip(acc_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1)),
-            'parieto_frontal_index': float(np.clip(integration_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1))
+            'parieto_frontal_index': float(np.clip(integration_base * self.gain + np.random.normal(0, self.noise_sigma), 0, 1)),
+            'global_volition_signal': float(np.clip(overall_fwi * self.gain + np.random.normal(0, self.noise_sigma * 0.5), 0, 1))
         }
 
         return bold_signals
+
+    def compute_energy_cost(self, fwi_result: Dict) -> Dict[str, float]:
+        """
+        P8: Cost of Choice
+        Quantifies bits of freedom per Joule (simulated).
+        Silicon: Efficient but rigid.
+        Biotic: High cost, high stochasticity.
+        """
+        fwi = fwi_result.get('fwi', 0.5)
+
+        # Simulated Energy in Joules
+        if self.substrate == 'Silicon':
+            joules = 0.001 * fwi
+        elif self.substrate == 'Neuromorphic':
+            joules = 0.0001 * fwi  # 10x more efficient
+        elif self.substrate == 'Biotic':
+            joules = 0.01 * fwi    # Expensive
+        else:
+            joules = 0.005 * fwi
+
+        return {
+            'joules_per_choice': float(joules),
+            'energy_fwi_ratio': float(fwi / (joules + 1e-9))
+        }
