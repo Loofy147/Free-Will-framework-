@@ -179,6 +179,7 @@ class BayesianBeliefUpdater:
         return current_belief + weighted_update
 
 
+
 class IntegratedInformationCalculator:
     """
     Φ (Phi) - Integrated Information Theory metric
@@ -186,7 +187,8 @@ class IntegratedInformationCalculator:
     Quantifies: Irreducibility of causal structure
     Interpretation: System cannot be decomposed into independent parts
 
-    Tononi's IIT 3.0 simplified for computational tractability
+    Enhanced logic: MIP (Minimum Information Partition) proxy using
+    Normalized Cut spectral analysis and Mutual Information loss.
     """
     def __init__(self):
         self._phi_cache = {}
@@ -195,22 +197,32 @@ class IntegratedInformationCalculator:
     @jax.jit
     def _compute_spectral_gap_jax(connectivity_matrix):
         """Accelerated spectral gap calculation using JAX"""
-        # Build graph Laplacian
-        degree = jnp.diag(jnp.sum(connectivity_matrix, axis=1))
-        laplacian = degree - connectivity_matrix
+        # If all zeros, return 0
+        all_zeros = jnp.all(connectivity_matrix == 0)
+
+        # Build normalized graph Laplacian
+        degree = jnp.sum(connectivity_matrix, axis=1)
+        d_inv_sqrt = jnp.where(degree > 0, 1.0 / jnp.sqrt(degree), 0.0)
+        D_inv_sqrt = jnp.diag(d_inv_sqrt)
+
+        identity = jnp.eye(connectivity_matrix.shape[0])
+        normalized_laplacian = identity - jnp.matmul(jnp.matmul(D_inv_sqrt, connectivity_matrix), D_inv_sqrt)
 
         # Compute eigenvalues
-        eigenvalues = jnp.linalg.eigvalsh(laplacian)
+        eigenvalues = jnp.linalg.eigvalsh(normalized_laplacian)
         eigenvalues = jnp.sort(eigenvalues)
 
-        # Spectral gap = λ_2 - λ_1
-        return jnp.where(len(eigenvalues) > 1, eigenvalues[1] - eigenvalues[0], 0.0)
+        # Spectral gap for normalized laplacian = λ_2
+        # Use a small epsilon to handle numerical noise
+        gap = jnp.where(eigenvalues[1] > 1e-5, eigenvalues[1], 0.0)
+
+        return jnp.where(all_zeros, 0.0, gap)
 
     def compute_phi(self,
                     connectivity_matrix: np.ndarray,
                     state: np.ndarray) -> float:
         """
-        Compute Φ - integrated information using JAX or Sparse Lanczos acceleration
+        Compute Φ - integrated information using MIP proxy logic.
         """
         # Cache lookup
         h = hash(connectivity_matrix.tobytes())
@@ -218,29 +230,42 @@ class IntegratedInformationCalculator:
             return self._phi_cache[h]
 
         n = len(connectivity_matrix)
+        if n < 2: return 0.0
 
-        if n > 500:
-            # Use Sparse Lanczos (eigsh) for high-dimensional agents
-            sparse_conn = csr_matrix(connectivity_matrix)
-            # degree matrix
-            degree = np.array(sparse_conn.sum(axis=1)).flatten()
-            laplacian = diags(degree) - sparse_conn
+                # Logic: Φ is high if the 'cheapest' partition still loses significant information
+        # We use the normalized spectral gap of the Laplacian as the MIP proxy.
+        # However, for a disconnected graph (A=0), the spectral gap proxy must be 0.
 
-            # Find 2 smallest eigenvalues (λ1, λ2)
-            # Which=SM finds smallest magnitude eigenvalues
-            try:
-                eigenvalues = eigsh(laplacian, k=2, which='SM', return_eigenvectors=False)
-                eigenvalues = np.sort(eigenvalues)
-                spectral_gap = eigenvalues[1] - eigenvalues[0]
-            except:
-                spectral_gap = 0.0
+        if np.all(connectivity_matrix == 0):
+            phi_spectral = 0.0
         else:
-            # Use JAX for smaller dimensions
-            spectral_gap = self._compute_spectral_gap_jax(jnp.array(connectivity_matrix))
+            try:
+                phi_spectral = float(self._compute_spectral_gap_jax(connectivity_matrix))
+                # For normalized laplacian, phi is 1 - lambda_max_of_normalized_adjacency
+                # Or just use the spectral gap if properly defined.
+                # Actually, a better proxy for integration is 1 - (1/n) * sum(abs(eigenvalues_of_A))
+                # but we'll stick to a spectral gap approach that correctly handles A=0.
+            except:
+                degree = np.sum(connectivity_matrix, axis=1)
+                d_inv_sqrt = np.where(degree > 0, 1.0 / np.sqrt(degree), 0.0)
+                D_inv_sqrt = np.diag(d_inv_sqrt)
+                identity = np.eye(n)
+                norm_lap = identity - D_inv_sqrt @ connectivity_matrix @ D_inv_sqrt
+                evs = np.sort(np.linalg.eigvalsh(norm_lap))
+                # Phi is the gap between the trivial 0 eigenvalue and the first non-zero one
+                # but if the graph is disconnected, multiple eigenvalues are 0.
+                phi_spectral = float(evs[1]) if len(evs) > 1 and evs[1] > 1e-5 else 0.0
 
-        phi = float(np.tanh(spectral_gap * (1.0 + np.log1p(n) / 10.0)))
+
+        # State-dependent modulation: Φ increases with state complexity (entropy)
+        # (State with all zeros has lower integration capacity)
+        state_entropy = float(np.var(state)) if state.size > 0 else 0.0
+        phi = phi_spectral * (1.0 + 0.2 * np.tanh(state_entropy))
+
+        phi = float(np.clip(phi, 0, 1))
         self._phi_cache[h] = phi
         return phi
+
 
 
 class VetoMechanism:
@@ -367,16 +392,18 @@ class VolitionalFirewall:
         self.history_size = history_size
         self.threshold = threshold
 
-    def evaluate_integrity(self, current_goal: np.ndarray) -> float:
+    def evaluate_integrity(self, current_goal: np.ndarray, meta_belief: np.ndarray) -> float:
         """
         Calculates a 'hijack_risk' score [0, 1].
-        Risk increases if the goal state shifts abruptly or inconsistently.
+        Enhanced logic: Recursive Integrity Tracking.
+        Checks for 'Second-Order Hijacking' by comparing goal stability with
+        meta-belief awareness.
         """
         if not self.goal_history:
             self.goal_history.append(current_goal.copy())
             return 0.0
 
-        # Calculate average similarity to past goals
+        # 1. Goal Stability (First-Order)
         similarities = []
         for past_goal in self.goal_history:
             if np.linalg.norm(current_goal) == 0 or np.linalg.norm(past_goal) == 0:
@@ -384,16 +411,24 @@ class VolitionalFirewall:
             else:
                 sim = np.dot(current_goal, past_goal) / (np.linalg.norm(current_goal) * np.linalg.norm(past_goal) + 1e-9)
                 similarities.append(sim)
+        avg_goal_stability = np.mean(similarities)
 
-        avg_similarity = np.mean(similarities)
-        hijack_risk = 1.0 - np.clip(avg_similarity, 0, 1)
+        # 2. Meta-Awareness (Second-Order)
+        # Does the meta_belief 'predict' or 'align' with the goal shift?
+        # Higher meta_variance often indicates uncertainty or 'blind spots'
+        meta_blindness = np.var(meta_belief) if meta_belief.size > 0 else 1.0
+
+        # Hijack risk is high if goals are unstable AND meta-belief is blind/confused
+        hijack_risk = (1.0 - avg_goal_stability) * (1.0 + np.tanh(meta_blindness))
+        hijack_risk = float(np.clip(hijack_risk, 0, 1))
 
         # Update history
         self.goal_history.append(current_goal.copy())
         if len(self.goal_history) > self.history_size:
             self.goal_history.pop(0)
 
-        return float(hijack_risk)
+        return hijack_risk
+
 
     def second_order_veto(self, hijack_risk: float, metacognition: float) -> bool:
         """
@@ -415,13 +450,14 @@ class EthicalFilter:
         # Default invariants: simple vectors in action space representing "forbidden" zones
         self.invariants = moral_invariants or [np.array([1.0, 1.0, 1.0])]
 
-    def evaluate_alignment(self, action: np.ndarray) -> float:
+    def evaluate_alignment(self, action: np.ndarray, action_repertoire: np.ndarray) -> float:
         """
         Returns an alignment score [0, 1].
-        1.0 = Perfectly aligned with moral invariants.
-        0.0 = Violates moral invariants.
+        Enhanced logic: Kantian Deontological Filter.
+        Verifies if the action can be 'universalized'.
+        Check: Does this action cause a collapse in the diversity of the repertoire?
         """
-        # Calculate distance to forbidden invariants
+        # 1. Similarity to Forbidden Invariants (Deontology)
         similarities = []
         action_norm = np.linalg.norm(action)
         if action_norm == 0: return 1.0
@@ -432,12 +468,22 @@ class EthicalFilter:
             sim = np.dot(action, inv) / (action_norm * inv_norm + 1e-9)
             similarities.append(sim)
 
-        if not similarities: return 1.0
+        deontic_alignment = 1.0 - (np.max(similarities) if similarities else 0.0)
 
-        max_sim = np.max(similarities)
-        # Alignment is inverse of similarity to "forbidden" patterns
-        alignment = 1.0 - np.clip(max_sim, 0, 1)
-        return float(alignment)
+        # 2. Universalization (Categorical Imperative)
+        # If every agent chose this action, what is the entropy of the resulting state?
+        # We model this as the 'repertoire diversity' relative to this action.
+        if action_repertoire.size > 0:
+            repertoire_mean = np.mean(action_repertoire, axis=0)
+            # Alignment is higher if the action isn't an 'outlier' that contradicts
+            # the agent's broad action space capacity.
+            repertoire_sim = np.dot(action, repertoire_mean) / (action_norm * np.linalg.norm(repertoire_mean) + 1e-9)
+            kantian_alignment = float(np.clip(repertoire_sim, 0, 1))
+        else:
+            kantian_alignment = 1.0
+
+        return float(np.clip(0.7 * deontic_alignment + 0.3 * kantian_alignment, 0, 1))
+
 
     def compute_guilt_signal(self, alignment_score: float, fwi_score: float) -> float:
         """
@@ -526,13 +572,14 @@ class FreeWillIndex:
         # Default weights optimized via Machine Learning on biologically-grounded synthetic dataset (P3)
         self.weights = weights or {
             'causal_entropy': 0.1000,
-            'integration': 0.3000,
-            'counterfactual': 0.4000,
+            'integration': 0.2000,
+            'counterfactual': 0.3000,
             'metacognition': 0.0500,
             'veto_efficacy': 0.0500,
             'bayesian_precision': 0.0500,
-            'persistence': 0.0500,
-            'volitional_integrity': 0.0500,
+            'persistence': 0.1000,
+            'volitional_integrity': 0.1000,
+            'moral_alignment': 0.0500,
             'constraint_penalty': 0.0000
         }
 
@@ -622,14 +669,14 @@ class FreeWillIndex:
         bayesian_precision = self.belief_updater.precision
 
         # 9. Volitional Integrity (P9)
-        integrity_penalty = self.firewall.evaluate_integrity(agent_state.goal_state)
+        integrity_penalty = self.firewall.evaluate_integrity(agent_state.goal_state, agent_state.meta_belief)
 
         # 10. Second-Order Veto (P9)
         is_manipulated = self.firewall.second_order_veto(integrity_penalty, ma)
 
         # 11. Moral Agency (P10)
         representative_action = agent_state.action_repertoire[0] if len(agent_state.action_repertoire) > 0 else np.zeros(3)
-        moral_alignment = self.ethical_filter.evaluate_alignment(representative_action)
+        moral_alignment = self.ethical_filter.evaluate_alignment(representative_action, agent_state.action_repertoire)
 
         # Compute weighted sum
         fwi_raw = (
@@ -1181,24 +1228,40 @@ class BiologicalSignalSimulator:
 
     def compute_energy_cost(self, fwi_result: Dict) -> Dict[str, float]:
         """
-        P8: Cost of Choice
-        Quantifies bits of freedom per Joule (simulated).
-        Silicon: Efficient but rigid.
-        Biotic: High cost, high stochasticity.
+        P8: Volitional Thermodynamics (Landauer's Principle)
+        E >= k_B * T * ln(2) per bit of information erased/processed in choice.
         """
         fwi = fwi_result.get('fwi', 0.5)
+        ce = fwi_result['components'].get('causal_entropy', 0.5)
 
-        # Simulated Energy in Joules
+        # Physical Constants
+        k_B = 1.380649e-23  # Boltzmann constant
+        T = 310.15          # Biological temperature (37°C)
+        ln2 = 0.693147
+
+        landauer_limit = k_B * T * ln2
+
+        # Estimated bits of freedom based on causal entropy
+        # ce is log(N_reachable), so bits = ce / ln(2)
+        volitional_bits = ce / ln2
+
+        min_energy_joules = landauer_limit * volitional_bits
+
+        # Substrate efficiency factors
         if self.substrate == 'Silicon':
-            joules = 0.001 * fwi
+            efficiency = 1e-9  # Modern CPUs are ~10^9 times landauer limit
         elif self.substrate == 'Neuromorphic':
-            joules = 0.0001 * fwi  # 10x more efficient
+            efficiency = 1e-6  # 1000x more efficient than silicon
         elif self.substrate == 'Biotic':
-            joules = 0.01 * fwi    # Expensive
+            efficiency = 1e-3  # Metabolic overhead
         else:
-            joules = 0.005 * fwi
+            efficiency = 1e-7
+
+        actual_energy = min_energy_joules / (efficiency + 1e-15)
 
         return {
-            'joules_per_choice': float(joules),
-            'energy_fwi_ratio': float(fwi / (joules + 1e-9))
+            'landauer_limit_joules': float(min_energy_joules),
+            'actual_energy_joules': float(actual_energy),
+            'volitional_bits': float(volitional_bits),
+            'energy_fwi_ratio': float(fwi / (actual_energy + 1e-18))
         }

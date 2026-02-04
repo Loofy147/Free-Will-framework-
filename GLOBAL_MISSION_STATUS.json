@@ -3,31 +3,31 @@
     {
       "property_name": "human_override_safety",
       "status": "VERIFIED",
-      "proof_time_ms": 16.823530197143555,
+      "proof_time_ms": 131.2553882598877,
       "counterexample": ""
     },
     {
       "property_name": "veto_mechanism_correctness",
       "status": "VERIFIED",
-      "proof_time_ms": 2.071857452392578,
+      "proof_time_ms": 1.9488334655761719,
       "counterexample": ""
     },
     {
       "property_name": "fwi_bounded_01",
       "status": "VERIFIED",
-      "proof_time_ms": 3.0584335327148438,
+      "proof_time_ms": 3.000974655151367,
       "counterexample": ""
     },
     {
       "property_name": "emergence_logic_soundness",
       "status": "VERIFIED",
-      "proof_time_ms": 1.8033981323242188,
+      "proof_time_ms": 1.600027084350586,
       "counterexample": ""
     },
     {
       "property_name": "acyclic_dependencies",
       "status": "VERIFIED",
-      "proof_time_ms": 4.620790481567383,
+      "proof_time_ms": 4.547119140625,
       "counterexample": ""
     }
   ],
@@ -36,17 +36,17 @@
       "component": "VolitionModule",
       "operation": "MCTS_depth_50",
       "claimed_latency_ms": 50.0,
-      "measured_mean_ms": 0.05763466214059973,
-      "measured_p50_ms": 0.05866699939360842,
-      "measured_p95_ms": 0.0955737501499243,
-      "measured_p99_ms": 0.11640740043731064,
-      "measured_p999_ms": 0.1325506021212279,
-      "min_ms": 0.0422590001107892,
-      "max_ms": 0.13592400046036346,
-      "std_dev_ms": 0.014772028505819604,
+      "measured_mean_ms": 0.045756476626166304,
+      "measured_p50_ms": 0.0428890007242444,
+      "measured_p95_ms": 0.07577795076940672,
+      "measured_p99_ms": 0.09271346041714425,
+      "measured_p999_ms": 0.10244638125368527,
+      "min_ms": 0.03814000046986621,
+      "max_ms": 0.10685499910323415,
+      "std_dev_ms": 0.010250990205585998,
       "confidence_interval_95": [
-        0.05734219089780604,
-        0.05792713338339342
+        0.045553517374895394,
+        0.04595943587743721
       ],
       "iterations": 9800,
       "passed": true,
@@ -58,24 +58,24 @@
         "cpu_frequency_mhz": 2299.998,
         "ram_total_gb": 7.772548675537109,
         "python_version": "3.12.12",
-        "timestamp": "2026-02-04T01:31:57.458976"
+        "timestamp": "2026-02-04T02:46:33.109782"
       }
     },
     "volition_fast_path": {
       "component": "VolitionModule",
       "operation": "cached_policy",
       "claimed_latency_ms": 5.0,
-      "measured_mean_ms": 0.10865291734373794,
-      "measured_p50_ms": 0.10148950013899594,
-      "measured_p95_ms": 0.1440268002625089,
-      "measured_p99_ms": 0.17045605997736857,
-      "measured_p999_ms": 0.1862006030014527,
-      "min_ms": 0.09667399990576087,
-      "max_ms": 0.1877530003184802,
-      "std_dev_ms": 0.016165567973174685,
+      "measured_mean_ms": 0.10863566335594478,
+      "measured_p50_ms": 0.10152000049856724,
+      "measured_p95_ms": 0.14822040047874907,
+      "measured_p99_ms": 0.17720568001095674,
+      "measured_p999_ms": 0.23714734537134097,
+      "min_ms": 0.08946699927037116,
+      "max_ms": 0.24564300110796466,
+      "std_dev_ms": 0.018777598916009785,
       "confidence_interval_95": [
-        0.10833285542714215,
-        0.10897297926033374
+        0.10826388586516325,
+        0.10900744084672631
       ],
       "iterations": 9800,
       "passed": true,
@@ -87,24 +87,24 @@
         "cpu_frequency_mhz": 2299.998,
         "ram_total_gb": 7.772548675537109,
         "python_version": "3.12.12",
-        "timestamp": "2026-02-04T01:31:57.458976"
+        "timestamp": "2026-02-04T02:46:33.109782"
       }
     },
     "critic_veto": {
       "component": "MetaCognitiveCritic",
       "operation": "veto_check",
       "claimed_latency_ms": 10.0,
-      "measured_mean_ms": 0.005717705405412725,
-      "measured_p50_ms": 0.005536000571737532,
-      "measured_p95_ms": 0.005925000550632831,
-      "measured_p99_ms": 0.01078354011042394,
-      "measured_p999_ms": 0.018946099909044372,
-      "min_ms": 0.005172999408387113,
-      "max_ms": 0.02420700002403464,
-      "std_dev_ms": 0.001031166039782355,
+      "measured_mean_ms": 0.005634706424142659,
+      "measured_p50_ms": 0.005441001121653244,
+      "measured_p95_ms": 0.005825999414810212,
+      "measured_p99_ms": 0.01238501043189899,
+      "measured_p999_ms": 0.024069638839137077,
+      "min_ms": 0.004771000021719374,
+      "max_ms": 0.02447199949529022,
+      "std_dev_ms": 0.001437751426375562,
       "confidence_interval_95": [
-        0.0056972893594334625,
-        0.005738121451391988
+        0.005606240398211637,
+        0.005663172450073682
       ],
       "iterations": 9800,
       "passed": true,
@@ -116,24 +116,24 @@
         "cpu_frequency_mhz": 2299.998,
         "ram_total_gb": 7.772548675537109,
         "python_version": "3.12.12",
-        "timestamp": "2026-02-04T01:31:57.458976"
+        "timestamp": "2026-02-04T02:46:33.109782"
       }
     },
     "counterfactual_sim": {
       "component": "CounterfactualSimulator",
       "operation": "background_planning",
       "claimed_latency_ms": 100.0,
-      "measured_mean_ms": 1.071975018574226,
-      "measured_p50_ms": 1.051029999871389,
-      "measured_p95_ms": 1.1471166500996333,
-      "measured_p99_ms": 1.4589281999451496,
-      "measured_p999_ms": 1.5162358581383162,
-      "min_ms": 1.021134999973583,
-      "max_ms": 1.5225329998429515,
-      "std_dev_ms": 0.06375502666179857,
+      "measured_mean_ms": 1.0985046361255795,
+      "measured_p50_ms": 1.0698575006244937,
+      "measured_p95_ms": 1.4067579006223239,
+      "measured_p99_ms": 1.5216456484449739,
+      "measured_p999_ms": 1.5547047277650565,
+      "min_ms": 0.9563140010868665,
+      "max_ms": 1.5573509990645107,
+      "std_dev_ms": 0.10342265866028859,
       "confidence_interval_95": [
-        1.070712733446982,
-        1.0732373037014702
+        1.0964569719541026,
+        1.1005523002970563
       ],
       "iterations": 9800,
       "passed": true,
@@ -145,24 +145,24 @@
         "cpu_frequency_mhz": 2299.998,
         "ram_total_gb": 7.772548675537109,
         "python_version": "3.12.12",
-        "timestamp": "2026-02-04T01:31:57.458976"
+        "timestamp": "2026-02-04T02:46:33.109782"
       }
     },
     "fwi_compute": {
       "component": "FWICalculator",
       "operation": "full_computation",
       "claimed_latency_ms": 3000.0,
-      "measured_mean_ms": 0.800885804495066,
-      "measured_p50_ms": 0.7932419998724072,
-      "measured_p95_ms": 0.9244548993137869,
-      "measured_p99_ms": 1.0164425596849471,
-      "measured_p999_ms": 1.1119037905336926,
-      "min_ms": 0.6937610005479655,
-      "max_ms": 1.1305379994155373,
-      "std_dev_ms": 0.07051343500985119,
+      "measured_mean_ms": 0.7793377932572482,
+      "measured_p50_ms": 0.7442145006280043,
+      "measured_p95_ms": 1.0009854011514108,
+      "measured_p99_ms": 1.062209370356868,
+      "measured_p999_ms": 1.086222029867713,
+      "min_ms": 0.6413510000129463,
+      "max_ms": 1.0895180002989946,
+      "std_dev_ms": 0.10230587384522913,
       "confidence_interval_95": [
-        0.7994897097093797,
-        0.8022818992807522
+        0.7773122402970152,
+        0.7813633462174812
       ],
       "iterations": 9800,
       "passed": true,
@@ -174,7 +174,7 @@
         "cpu_frequency_mhz": 2299.998,
         "ram_total_gb": 7.772548675537109,
         "python_version": "3.12.12",
-        "timestamp": "2026-02-04T01:31:57.458976"
+        "timestamp": "2026-02-04T02:46:33.109782"
       }
     }
   },
@@ -186,24 +186,24 @@
     "breach_detected": true
   },
   "global_benchmark": {
-    "mean_individual_fwi": 0.3818138205473736,
-    "collective_fwi": 0.9994492864608765,
+    "mean_individual_fwi": 0.29237766972690077,
+    "collective_fwi": 0.854480789065361,
     "democratic_volition": 0.2844323138930172,
-    "fwi_bold_correlation": 0.9990254406489082,
+    "fwi_bold_correlation": 0.9974502906642517,
     "volition_correlation_matrix": [
       [
-        1.0,
-        -0.10317039075515237,
-        -0.03413348383858033
+        0.9999999999999999,
+        -0.04361319744088504,
+        -0.06038617053398815
       ],
       [
-        -0.10317039075515236,
+        -0.04361319744088504,
         1.0,
-        0.0929344918397981
+        -0.10535048576821715
       ],
       [
-        -0.034133483838580336,
-        0.0929344918397981,
+        -0.06038617053398815,
+        -0.10535048576821716,
         1.0
       ]
     ],
