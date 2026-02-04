@@ -456,3 +456,9 @@ Current FWI: **0.9995**
 Innovation Score: **1.00**
 Validation: **25/25 unit tests PASSED**
 BOLD Correlation: **~0.99 (Target > 0.80)**
+
+### Advanced Computational Logics
+- **Minimum Information Partition (MIP) Proxy:** Φ is now calculated using the Normalized Laplacian spectral gap, providing a more robust measure of system irreducibility than basic spectral analysis.
+- **Landauer's Principle:** Volitional thermodynamics are grounded in physical reality, quantifying the minimum energy cost ( T \ln 2$) per bit of choice.
+- **Recursive Integrity Tracking:** The Volitional Firewall now detects Second-Order Hijacking by correlating goal stability with metacognitive uncertainty.
+- **Kantian Deontological Filter:** Moral alignment includes a Categorical Imperative check, verifying if actions can be universalized within the agent's repertoire without causing agency collapse.

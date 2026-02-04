@@ -1,6 +1,7 @@
 """
 ADAPTIVE FWI - WEIGHT OPTIMIZATION (P1)
 Learns optimal FWI weights via analytic gradient descent on simulated datasets.
+Optimizes across all 10 realization dimensions.
 """
 
 import numpy as np
@@ -11,7 +12,7 @@ from free_will_framework import (
     AgentState, FreeWillIndex, CausalEntropyCalculator,
     IntegratedInformationCalculator, CounterfactualDepthCalculator,
     EmergenceProof, VetoMechanism, BayesianBeliefUpdater,
-    TemporalPersistenceCalculator
+    TemporalPersistenceCalculator, VolitionalFirewall, EthicalFilter
 )
 
 @dataclass
@@ -39,7 +40,6 @@ def simulate_episode(seed: int = 42) -> Episode:
     """
     np.random.seed(seed)
 
-    # Random agent state
     agent = AgentState(
         belief_state=np.random.randn(10),
         goal_state=np.random.rand(5),
@@ -58,7 +58,7 @@ def simulate_episode(seed: int = 42) -> Episode:
     conn = (conn + conn.T) / 2
     np.fill_diagonal(conn, 0)
 
-    # --- raw component scores (replicating FreeWillIndex internals) ---
+    # --- raw component scores ---
     ce_calc = CausalEntropyCalculator(time_horizon=20)
     ce_raw  = ce_calc.compute_causal_entropy(agent.belief_state, dynamics, agent.action_repertoire)
     ce_norm = float(np.tanh(ce_raw / 10))
@@ -91,6 +91,13 @@ def simulate_episode(seed: int = 42) -> Episode:
     belief_updater = BayesianBeliefUpdater()
     precision = belief_updater.precision
 
+    firewall = VolitionalFirewall()
+    integrity_penalty = firewall.evaluate_integrity(agent.goal_state, agent.meta_belief)
+    integrity = 1.0 - integrity_penalty
+
+    ethical_filter = EthicalFilter()
+    moral_alignment = ethical_filter.evaluate_alignment(agent.action_repertoire[0], agent.action_repertoire)
+
     components = {
         'causal_entropy':       ce_norm,
         'integration_phi':      phi,
@@ -99,6 +106,8 @@ def simulate_episode(seed: int = 42) -> Episode:
         'veto_efficacy':        veto_eff,
         'bayesian_precision':   precision,
         'persistence':          persistence,
+        'volitional_integrity': integrity,
+        'moral_alignment':      moral_alignment,
         'external_constraint':  ec
     }
 
@@ -123,13 +132,14 @@ def simulate_episode(seed: int = 42) -> Episode:
 
 class AdaptiveFWI(FreeWillIndex):
     """
-    FreeWillIndex with learned weights.
+    FreeWillIndex with learned weights across all 10 dimensions.
     """
 
     COMPONENT_KEYS = [
         'causal_entropy', 'integration_phi', 'counterfactual_depth',
         'metacognition', 'veto_efficacy', 'bayesian_precision',
-        'persistence', 'external_constraint'
+        'persistence', 'volitional_integrity', 'moral_alignment',
+        'external_constraint'
     ]
 
     def __init__(self):
@@ -143,7 +153,7 @@ class AdaptiveFWI(FreeWillIndex):
         t0 = time.time()
         if verbose:
             print("\n" + "=" * 70)
-            print(" ADAPTIVE FWI — WEIGHT OPTIMIZATION")
+            print(" ADAPTIVE FWI — WEIGHT OPTIMIZATION (10 DIMENSIONS)")
             print("=" * 70)
 
         episodes = []
@@ -161,10 +171,12 @@ class AdaptiveFWI(FreeWillIndex):
             'veto_efficacy': 'veto_efficacy',
             'bayesian_precision': 'bayesian_precision',
             'persistence': 'persistence',
+            'volitional_integrity': 'volitional_integrity',
+            'moral_alignment': 'moral_alignment',
             'external_constraint': 'constraint_penalty'
         }
 
-        sign = np.array([1, 1, 1, 1, 1, 1, 1, -1], dtype=float)
+        sign = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, -1], dtype=float)
 
         w = np.array([self.weights[weight_key_map[k]] for k in self.COMPONENT_KEYS])
 

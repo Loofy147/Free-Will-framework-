@@ -24,14 +24,15 @@ class IntegratedVolitionSystem:
         # Full weight set to avoid KeyErrors
         self.fwi_calc.weights = {
             'causal_entropy': 0.10,
-            'integration': 0.30,
-            'counterfactual': 0.40,
+            'integration': 0.20,
+            'counterfactual': 0.30,
             'metacognition': 0.05,
             'veto_efficacy': 0.05,
             'bayesian_precision': 0.05,
-            'persistence': 0.05,
-            'volitional_integrity': 0.05,
-            'constraint_penalty': 0.0
+            'persistence': 0.10,
+            'volitional_integrity': 0.10,
+            'moral_alignment': 0.05,
+            'constraint_penalty': 0.00
         }
         self.quantum_engine = QuantumDecisionEngine(n_actions=20, decoherence_rate=0.1)
         self.social_calc = CollectiveFreeWill(self.fwi_calc)
@@ -71,11 +72,21 @@ class IntegratedVolitionSystem:
         return res
 
     def simulate_collective_volition(self, agents: List[AgentState], coupling: np.ndarray) -> Dict:
-        """Analyze group agency and synergy"""
+        """Analyze group agency, synergy, and quantum entanglement"""
         social_phi = self.social_calc.compute_social_phi(agents, coupling)
 
+        # Quantum Entanglement Realization
+        # Simulate entanglement between top 2 agents if coupling is high
+        entanglement_fidelity = 0.0
+        if len(agents) >= 2 and np.max(coupling) > 0.8:
+            from quantum_decision_engine import EntangledAgentPair
+            pair = EntangledAgentPair(agents[0].action_repertoire.shape[0], agents[1].action_repertoire.shape[0])
+            outcome_A, rho_B = pair.measure_A()
+            # Fidelity is high if measuring A collapses B to a highly probable state
+            entanglement_fidelity = float(np.max(np.real(np.diag(rho_B))))
+
         # Heuristic for collective FWI
-        collective_fwi = float(social_phi) # simplified for demo integration
+        collective_fwi = float(0.7 * social_phi + 0.3 * entanglement_fidelity)
 
         # Measure individual preferences for Democratic Volition
         prefs = [a.action_repertoire[0] for a in agents]
@@ -85,7 +96,8 @@ class IntegratedVolitionSystem:
         return {
             'collective_fwi': collective_fwi,
             'social_phi': social_phi,
-            'democratic_volition': dv
+            'democratic_volition': dv,
+            'entanglement_fidelity': entanglement_fidelity
         }
 
     def global_benchmark(self, n_agents: int = 10, n_steps: int = 50):

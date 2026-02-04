@@ -397,6 +397,13 @@ Bridges volition with responsibility through an **Ethical Filter**.
 Achieved a benchmark correlation of **~0.99** between the composite FWI and simulated BOLD signals in a 10-agent, 50-step swarm simulation, demonstrating the biological fidelity of the computational model.
 
 
+
+### Advanced Computational Logics
+- **Minimum Information Partition (MIP) Proxy:** Φ is now calculated using the Normalized Laplacian spectral gap, providing a more robust measure of system irreducibility than basic spectral analysis.
+- **Landauer's Principle:** Volitional thermodynamics are grounded in physical reality, quantifying the minimum energy cost ( T \ln 2$) per bit of choice.
+- **Recursive Integrity Tracking:** The Volitional Firewall now detects Second-Order Hijacking by correlating goal stability with metacognitive uncertainty.
+- **Kantian Deontological Filter:** Moral alignment includes a Categorical Imperative check, verifying if actions can be universalized within the agent's repertoire without causing agency collapse.
+
 ## STAGE 6: UNIT TEST RESULTS
 
 ### Comprehensive Validation
