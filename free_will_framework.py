@@ -191,7 +191,8 @@ class IntegratedInformationCalculator:
     Normalized Cut spectral analysis and Mutual Information loss.
     """
     def __init__(self):
-        self._phi_cache = {}
+        # Dual-layer cache: store the expensive spectral gap separately from state modulation
+        self._spectral_cache = {}
 
     @staticmethod
     @jax.jit
@@ -203,14 +204,15 @@ class IntegratedInformationCalculator:
         # Build normalized graph Laplacian
         degree = jnp.sum(connectivity_matrix, axis=1)
         d_inv_sqrt = jnp.where(degree > 0, 1.0 / jnp.sqrt(degree), 0.0)
-        D_inv_sqrt = jnp.diag(d_inv_sqrt)
+
+        # Optimized normalization using broadcasting instead of D @ A @ D matmul
+        norm_adj = d_inv_sqrt[:, None] * connectivity_matrix * d_inv_sqrt[None, :]
 
         identity = jnp.eye(connectivity_matrix.shape[0])
-        normalized_laplacian = identity - jnp.matmul(jnp.matmul(D_inv_sqrt, connectivity_matrix), D_inv_sqrt)
+        normalized_laplacian = identity - norm_adj
 
-        # Compute eigenvalues
+        # Compute eigenvalues (eigvalsh returns sorted values by default)
         eigenvalues = jnp.linalg.eigvalsh(normalized_laplacian)
-        eigenvalues = jnp.sort(eigenvalues)
 
         # Spectral gap for normalized laplacian = λ_2
         # Use a small epsilon to handle numerical noise
@@ -224,49 +226,38 @@ class IntegratedInformationCalculator:
         """
         Compute Φ - integrated information using MIP proxy logic.
         """
-        # Cache lookup
-        h = hash(connectivity_matrix.tobytes())
-        if h in self._phi_cache:
-            return self._phi_cache[h]
-
-        n = len(connectivity_matrix)
-        if n < 2: return 0.0
-
-                # Logic: Φ is high if the 'cheapest' partition still loses significant information
-        # We use the normalized spectral gap of the Laplacian as the MIP proxy.
-        # However, for a disconnected graph (A=0), the spectral gap proxy must be 0.
-
-        if np.all(connectivity_matrix == 0):
-            phi_spectral = 0.0
+        # Cache lookup for the expensive spectral component
+        h_conn = hash(connectivity_matrix.tobytes())
+        if h_conn in self._spectral_cache:
+            phi_spectral = self._spectral_cache[h_conn]
         else:
-            try:
-                phi_spectral = float(self._compute_spectral_gap_jax(connectivity_matrix))
-                # For normalized laplacian, phi is 1 - lambda_max_of_normalized_adjacency
-                # Or just use the spectral gap if properly defined.
-                # Actually, a better proxy for integration is 1 - (1/n) * sum(abs(eigenvalues_of_A))
-                # but we'll stick to a spectral gap approach that correctly handles A=0.
-            except:
-                degree = np.sum(connectivity_matrix, axis=1)
-                d_inv_sqrt = np.where(degree > 0, 1.0 / np.sqrt(degree), 0.0)
-                D_inv_sqrt = np.diag(d_inv_sqrt)
-                identity = np.eye(n)
-                norm_lap = identity - D_inv_sqrt @ connectivity_matrix @ D_inv_sqrt
-                evs = np.sort(np.linalg.eigvalsh(norm_lap))
-                # Phi is the gap between the trivial 0 eigenvalue and the first non-zero one
-                # but if the graph is disconnected, multiple eigenvalues are 0.
-                phi_spectral = float(evs[1]) if len(evs) > 1 and evs[1] > 1e-5 else 0.0
+            n = len(connectivity_matrix)
+            if n < 2:
+                phi_spectral = 0.0
+            elif np.all(connectivity_matrix == 0):
+                phi_spectral = 0.0
+            else:
+                try:
+                    phi_spectral = float(self._compute_spectral_gap_jax(connectivity_matrix))
+                except:
+                    # Fallback (Numpy) with similar matrix optimizations
+                    degree = np.sum(connectivity_matrix, axis=1)
+                    d_inv_sqrt = np.where(degree > 0, 1.0 / np.sqrt(degree), 0.0)
+                    norm_adj = d_inv_sqrt[:, None] * connectivity_matrix * d_inv_sqrt[None, :]
+                    identity = np.eye(n)
+                    norm_lap = identity - norm_adj
+                    evs = np.linalg.eigvalsh(norm_lap) # Already sorted
+                    # Phi is the gap between the trivial 0 eigenvalue and the first non-zero one
+                    phi_spectral = float(evs[1]) if len(evs) > 1 and evs[1] > 1e-5 else 0.0
 
+            self._spectral_cache[h_conn] = phi_spectral
 
         # State-dependent modulation: Φ increases with state complexity (entropy)
-        # (State with all zeros has lower integration capacity)
+        # This part is cheap and should NOT be cached by connectivity alone (P6 fix)
         state_entropy = float(np.var(state)) if state.size > 0 else 0.0
         phi = phi_spectral * (1.0 + 0.2 * np.tanh(state_entropy))
 
-        phi = float(np.clip(phi, 0, 1))
-        self._phi_cache[h] = phi
-        return phi
-
-
+        return float(np.clip(phi, 0, 1))
 
 class VetoMechanism:
     """
