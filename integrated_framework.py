@@ -117,10 +117,17 @@ class IntegratedVolitionSystem:
             agents.append(agent)
 
         def dynamics(s, a):
-            a_flat = a.flatten()
-            a_proj = np.zeros(len(s))
-            a_proj[:len(a_flat)] = a_flat[:len(s)]
-            return 0.9 * s + 0.1 * a_proj
+            # Optimized & Robust to batching
+            res = s * 0.9
+            if a.ndim == 1:
+                n = min(len(s), len(a))
+                res[:n] += 0.1 * a[:n]
+            else:
+                if res.ndim == 1:
+                    res = np.tile(res, (len(a), 1))
+                n = min(res.shape[-1], a.shape[-1])
+                res[:, :n] += 0.1 * a[:, :n]
+            return res
         bounds = np.ones(3) * 2.0
 
         step_data = []

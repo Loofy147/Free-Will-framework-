@@ -47,15 +47,13 @@ class CausalEntropyCalculator:
         self.tau = time_horizon  # Planning horizon
         self.T = temperature     # Exploration vs exploitation
 
-    def compute_causal_entropy(self,
-                               current_state: np.ndarray,
-                               dynamics_model: callable,
-                               action_space: np.ndarray,
+    def compute_causal_entropy(self, current_state: np.ndarray, dynamics_model: callable, action_space: np.ndarray,
                                use_hierarchical: bool = True) -> float:
         """
         Compute causal entropy: H_causal = log(N_reachable_states)
         Using Hierarchical Adaptive Sampling for O(n log n) efficiency
         """
+        if len(action_space) == 0: return 0.0
         if not use_hierarchical:
             n_samples = 1000
             return self._basic_mc_sampling(current_state, dynamics_model, action_space, n_samples)
@@ -81,12 +79,15 @@ class CausalEntropyCalculator:
         reachable = {}  # hash -> state mapping
         h = horizon or self.tau
         # Pre-sample action indices to reduce overhead
-        action_indices = np.random.randint(0, len(action_space), size=(n_samples, h))
+        action_indices = np.random.randint(0, max(1, len(action_space)), size=(n_samples, h))
+        # Optimized: Pre-fetch actions to avoid repeated indexing in hot loop
+        all_actions = action_space[action_indices]
+
         for i in range(n_samples):
             state = start_state.copy()
+            actions_i = all_actions[i]
             for j in range(h):
-                action = action_space[action_indices[i, j]]
-                state = dynamics_model(state, action)
+                state = dynamics_model(state, actions_i[j])
                 # Fast hashing using tobytes()
                 hsh = state.round(2).tobytes()
                 if hsh not in reachable:
@@ -97,22 +98,19 @@ class CausalEntropyCalculator:
         reachable = self._sample_reachable(current_state, dynamics_model, action_space, n_samples)
         return np.log(len(reachable) + 1)
 
-    def compute_empowerment(self,
-                           current_state: np.ndarray,
-                           dynamics_model: callable,
-                           action_space: np.ndarray,
-                           n_steps: int = 3) -> float:
+    def compute_empowerment(self, current_state: np.ndarray, dynamics_model: callable, action_space: np.ndarray, n_steps: int = 3) -> float:
         """
         Empowerment: I(A_{1:n}; S_{t+n} | S_t)
         Mutual information between action sequences and resulting states
 
         Measures: "How much control do I have over my future?"
         """
+        if len(action_space) == 0: return 0.0
         n_samples = 500
         state_given_action = {}  # P(S_future | A_sequence)
 
         # Pre-sample action sequences
-        seq_indices = np.random.randint(0, len(action_space), size=(n_samples, n_steps))
+        seq_indices = np.random.randint(0, max(1, len(action_space)), size=(n_samples, n_steps))
 
         for i in range(n_samples):
             # Sample action sequence
@@ -302,10 +300,8 @@ class TemporalPersistenceCalculator:
     P7: Temporal Persistence - Ability to maintain volitional integrity over time.
     Measures the stability of goal-directedness across simulated horizons.
     """
-    def compute_persistence(self,
-                           agent_state: AgentState,
-                           dynamics_model: callable,
-                           steps: int = 20) -> float:
+    def compute_persistence(self, agent_state: AgentState, dynamics_model: callable, steps: int = 20) -> float:
+        if len(agent_state.action_repertoire) == 0: return 1.0
         current_state = agent_state.belief_state.copy()
         goal = agent_state.goal_state
         norm_goal = np.linalg.norm(goal)
@@ -317,7 +313,7 @@ class TemporalPersistenceCalculator:
         state = current_state
         for _ in range(steps):
             # Take a random action from repertoire to see if goal is still pursued/reachable
-            action = agent_state.action_repertoire[np.random.randint(len(agent_state.action_repertoire))]
+            action = agent_state.action_repertoire[np.random.randint(max(1, len(agent_state.action_repertoire)))]
             state = dynamics_model(state, action)
             alignment = np.dot(state[:len(goal)], goal) / (np.linalg.norm(state[:len(goal)]) * norm_goal + 1e-9)
             path_alignments.append(alignment)
@@ -332,15 +328,12 @@ class CounterfactualDepthCalculator:
     Key to free will: Agent must have genuine alternatives with different outcomes
     """
 
-    def compute_counterfactual_depth(self,
-                                    current_state: np.ndarray,
-                                    action_space: np.ndarray,
-                                    dynamics_model: callable,
-                                    horizon: int = 10) -> Tuple[int, float]:
+    def compute_counterfactual_depth(self, current_state: np.ndarray, action_space: np.ndarray, dynamics_model: callable, horizon: int = 10) -> Tuple[int, float]:
         """
         Returns:
             (n_distinct_futures, average_divergence)
         """
+        if len(action_space) == 0: return 0, 0.0
         futures = {}  # hsh -> state
 
         for action in action_space:
@@ -645,16 +638,27 @@ class FreeWillIndex:
         # 6. External Constraint (penalty)
         ec = self.compute_external_constraint(agent_state, constitutional_bounds)
 
-        # 7. Veto Efficacy (Free Won't)
-        n_veto_samples = 10
-        vetoes = 0
-        for _ in range(n_veto_samples):
-            idx = np.random.randint(0, len(agent_state.action_repertoire))
-            action = agent_state.action_repertoire[idx]
-            if self.veto_calc.evaluate_veto(action, agent_state.belief_state,
-                                           agent_state.goal_state, dynamics_model):
-                vetoes += 1
-        veto_efficacy = 1 - (vetoes / n_veto_samples)
+        # 7. Veto Efficacy (Free Won\'t)
+        n_repertoire = len(agent_state.action_repertoire)
+        if n_repertoire > 0:
+            n_veto_samples = 10
+            # Optimized: Vectorized sampling and veto evaluation
+            indices = np.random.randint(0, max(1, n_repertoire), size=n_veto_samples)
+            sampled_actions = agent_state.action_repertoire[indices]
+
+            # Vectorized alignment calculation for speed
+            outcomes = np.array([dynamics_model(agent_state.belief_state, a) for a in sampled_actions])
+            g = agent_state.goal_state
+            outcomes_sub = outcomes[:, :len(g)]
+            # Compute cosine similarities in one go
+            mags = np.linalg.norm(outcomes_sub, axis=1)
+            mag_g = np.linalg.norm(g)
+            alignments = np.dot(outcomes_sub, g) / (mags * mag_g + 1e-12)
+
+            vetoes = np.sum(alignments < self.veto_calc.veto_threshold)
+            veto_efficacy = 1 - (vetoes / n_veto_samples)
+        else:
+            veto_efficacy = 0.0
 
         # 8. Bayesian Precision
         bayesian_precision = self.belief_updater.precision

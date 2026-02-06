@@ -50,9 +50,13 @@ def simulate_episode(seed: int = 42) -> Episode:
     def dynamics(s, a):
         # Optimized: Avoid np.zeros/np.pad in hot loop (Bolt Journal)
         res = s * 0.9
-        a_flat = a.flatten()
-        n = min(len(s), len(a_flat))
-        res[:n] += 0.1 * a_flat[:n]
+        if a.ndim == 1:
+            n = min(len(s), len(a))
+            res[:n] += 0.1 * a[:n]
+        else:
+            if res.ndim == 1: res = np.tile(res, (len(a), 1))
+            n = min(res.shape[-1], a.shape[-1])
+            res[:, :n] += 0.1 * a[:, :n]
         return res
 
     bounds = np.ones(3) * 2.0
