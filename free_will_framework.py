@@ -356,11 +356,11 @@ class CounterfactualDepthCalculator:
         # Average divergence between futures
         if len(futures) > 1:
             future_states = np.array(list(futures.values()))
-            pairwise_dist = np.linalg.norm(
-                future_states[:, None] - future_states[None, :],
-                axis=2
-            )
-            avg_divergence = pairwise_dist.mean()
+            # Optimized pairwise distance: ||x-y||^2 = ||x||^2 + ||y||^2 - 2x.y
+            # Much faster and more memory-efficient than broadcasting
+            sq_norms = np.sum(future_states**2, axis=1)
+            dist_sq = sq_norms[:, None] + sq_norms[None, :] - 2 * np.dot(future_states, future_states.T)
+            avg_divergence = np.sqrt(np.maximum(dist_sq, 0)).mean()
         else:
             avg_divergence = 0.0
 

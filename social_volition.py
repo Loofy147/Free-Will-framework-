@@ -39,17 +39,21 @@ class CollectiveFreeWill:
         Quantifies how much the group action reflects individual preferences.
         DV = Mean(CosineSimilarity(GroupAction, IndividualPreference))
         """
-        similarities = []
+        if not individual_preferred_actions:
+            return 0.0
+
         group_norm = np.linalg.norm(group_action)
         if group_norm == 0: return 0.0
 
-        for pref in individual_preferred_actions:
-            pref_norm = np.linalg.norm(pref)
-            if pref_norm == 0:
-                similarities.append(0.0)
-                continue
-            sim = np.dot(group_action, pref) / (group_norm * pref_norm)
-            similarities.append(sim)
+        # Optimized: Vectorized cosine similarity computation
+        prefs = np.array(individual_preferred_actions)
+        pref_norms = np.linalg.norm(prefs, axis=1)
+        denom = group_norm * pref_norms
+        valid = denom > 1e-12
+
+        dots = np.dot(prefs, group_action)
+        similarities = np.zeros(len(prefs))
+        similarities[valid] = dots[valid] / denom[valid]
 
         return float(np.mean(similarities))
 
