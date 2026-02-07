@@ -1,3 +1,4 @@
+import json
 """
 ADAPTIVE FWI - WEIGHT OPTIMIZATION (P1)
 Learns optimal FWI weights via analytic gradient descent on simulated datasets.
@@ -233,3 +234,9 @@ if __name__ == "__main__":
     optimizer = AdaptiveFWI()
     report = optimizer.optimize(n_episodes=200, n_epochs=100, lr=0.1)
     print(f"Optimal weights: {report['optimal_weights']}")
+
+    # Persist optimized weights
+    import json
+    with open("optimized_weights.json", "w") as f:
+        json.dump(report["optimal_weights"], f, indent=4)
+    print("\n[INFO] Optimized weights saved to optimized_weights.json")

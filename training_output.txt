@@ -1,0 +1,10 @@
+
+======================================================================
+ ADAPTIVE FWI — WEIGHT OPTIMIZATION (10 DIMENSIONS)
+======================================================================
+       Epoch    0 | Loss 0.091580 | Acc 0.930
+       Epoch   30 | Loss 0.065647 | Acc 0.930
+       Epoch   60 | Loss 0.065124 | Acc 0.930
+       Epoch   90 | Loss 0.065103 | Acc 0.930
+       Epoch   99 | Loss 0.065098 | Acc 0.930
+Optimal weights: {'causal_entropy': 0.07892100735840228, 'integration': 0.29091082447568917, 'counterfactual': 0.36168008913599764, 'metacognition': 0.0, 'veto_efficacy': 0.0, 'bayesian_precision': 0.07809175541839064, 'persistence': 0.0014781264423218122, 'volitional_integrity': 0.18891819716919836, 'moral_alignment': 0.0, 'constraint_penalty': 0.0}
