@@ -215,7 +215,36 @@ RESULTS:
 
 GLOBAL_MISSION_STATUS.json generated.
 
-Run the unit tests:
+## Training and Kaggle Integration
+
+This project uses an adaptive weight optimization process to refine the Free Will Index (FWI).
+
+### 1. Preparation
+Run the preparation script to set up the environment and check for Kaggle credentials:
+```bash
+./train.sh
+```
+
+### 2. Kaggle Setup
+To download datasets from Kaggle:
+1. Go to your [Kaggle Settings](https://www.kaggle.com/settings).
+2. Click on **Create New API Token**.
+3. Move the downloaded `kaggle.json` to `~/.kaggle/kaggle.json`.
+4. Ensure the permissions are correct: `chmod 600 ~/.kaggle/kaggle.json`.
+
+### 3. Downloading Data
+Use the provided script to download a dataset:
+```bash
+./download_data.sh <dataset-name>
+```
+
+### 4. Running Training
+The training (weight optimization) is handled by `adaptive_fwi.py`:
+```bash
+python3 adaptive_fwi.py
+```
+
+## Run the unit tests:
 
 ================================================================================
 COMPREHENSIVE UNIT TEST SUITE
