@@ -1,0 +1,19 @@
+
+======================================================================
+ ADAPTIVE FWI — IMPROVED WEIGHT OPTIMIZATION
+======================================================================
+       Epoch    0 | Loss 0.081751 | Acc 0.944
+       Epoch   50 | Loss 0.053026 | Acc 0.944
+       Epoch  100 | Loss 0.053353 | Acc 0.944
+       Epoch  150 | Loss 0.053356 | Acc 0.944
+       Epoch  200 | Loss 0.053282 | Acc 0.944
+       Epoch  250 | Loss 0.053212 | Acc 0.944
+       Epoch  300 | Loss 0.053201 | Acc 0.944
+       Epoch  350 | Loss 0.053190 | Acc 0.944
+       Epoch  400 | Loss 0.053181 | Acc 0.944
+       Epoch  450 | Loss 0.053173 | Acc 0.944
+       Epoch  499 | Loss 0.053169 | Acc 0.944
+
+Optimal weights: {'causal_entropy': 0.06633483726426562, 'integration': 0.32120149302656165, 'counterfactual': 0.4340397311729817, 'metacognition': 0.0, 'veto_efficacy': 0.0, 'bayesian_precision': 0.0, 'persistence': 0.0, 'volitional_integrity': 0.17842393853619104, 'moral_alignment': 0.0, 'constraint_penalty': 0.0}
+
+[INFO] Optimized weights saved to optimized_weights.json

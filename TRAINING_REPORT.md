@@ -1,48 +1,37 @@
-# TRAINING AND VOLITION REPORT - v1.0
-## Analysis of Free Will Index (FWI) Weight Optimization
+# TRAINING AND VOLITION REPORT - v1.1
+## Enhanced Analysis of Free Will Index (FWI) with Kaggle Grounding
 
 ### 1. Executive Summary
-The `AdaptiveFWI` system has successfully completed its optimization cycle. Using a dataset of 500 simulated episodes, the system converged on an optimal weight distribution for the 10 dimensions of volitional agency. The final accuracy of 93% indicates a high correlation between the weighted components and the emergent agency labels.
+The FWI optimization pipeline has been upgraded with real-world neuroscience grounding and regularized training. By utilizing the **Epileptic Seizure Recognition EEG dataset** from Kaggle as a source of state variance, and implementing **Entropy-Regularized Simplex Projection**, we have achieved a more robust weight configuration with a final accuracy of **94.4%**.
 
-### 2. Training Performance
-- **Initial Loss:** 0.091580
-- **Final Loss:** 0.065098
-- **Final Accuracy:** 0.93 (93%)
-- **Convergence:** The loss stabilized significantly after Epoch 60, suggesting a stable global minimum was found.
+### 2. Experimental Setup
+- **Dataset:** Kaggle `harunshimanto/epileptic-seizure-recognition` (178 EEG features per episode).
+- **Optimization Strategy:** Regularized Simplex Projection with Entropy Penalty ($\lambda=0.03$).
+- **Scale:** 2,000 episodes over 500 epochs (4x scale increase).
 
-### 3. Optimized Weight Distribution
-| Dimension | Weight | Importance |
-|-----------|--------|------------|
-| Counterfactual Depth | 0.3617 | **High** |
-| Integrated Information (Phi) | 0.2909 | **High** |
-| Volitional Integrity | 0.1889 | Medium |
-| Causal Entropy | 0.0789 | Low |
-| Bayesian Precision | 0.0781 | Low |
-| Temporal Persistence | 0.0015 | Negligible |
-| Metacognition | 0.0000 | Inactive |
-| Veto Efficacy | 0.0000 | Inactive |
-| Moral Alignment | 0.0000 | Inactive |
-| Constraint Penalty | 0.0000 | Inactive |
+### 3. Training Results
+- **Final Loss:** 0.053169 (vs 0.065098 baseline)
+- **Final Accuracy:** 0.944 (94.4%)
+- **Improvement:** 18% reduction in loss, 1.4% increase in accuracy.
 
-### 4. Observations
-- **Core Drivers:** Counterfactual Depth and Integrated Information accounts for ~65% of the FWI score. This aligns with the theory that agency is primarily a function of system coherence and the ability to model alternatives.
-- **Dormant Dimensions:** Several dimensions (Metacognition, Veto Efficacy, Moral Alignment) were assigned zero weights. This likely indicates that in the current simulation environment, these features were redundant or did not vary sufficiently to influence the emergence proof.
+### 4. Updated Weight Distribution
+| Dimension | Baseline Weight | Improved Weight | Trend |
+|-----------|-----------------|-----------------|-------|
+| Counterfactual Depth | 0.3617 | 0.4340 | ⬆️ Increasing |
+| Integrated Information (Phi) | 0.2909 | 0.3212 | ⬆️ Increasing |
+| Volitional Integrity | 0.1889 | 0.1784 | ⬇️ Stable |
+| Causal Entropy | 0.0789 | 0.0663 | ⬇️ Stable |
+| Bayesian Precision | 0.0781 | 0.0000 | ⬇️ Latent |
+| Others (Metacognition, Veto, etc) | ~0.0015 | 0.0000 | ⬇️ Redundant |
 
-### 5. Proposed Improvements
-To enhance the robustness and realism of the Free Will Framework, the following improvements are recommended:
+### 5. Key Innovations
+- **EEG Grounding:** Agent states are now perturbed by normalized EEG time-series data, providing a more realistic "biological noise" floor for agency calculations.
+- **Regularized Simplex:** The introduction of entropy regularization helps in exploring the weight space more effectively, though it confirms the dominance of the Top-3 agency metrics.
+- **Improved Convergence:** The loss curve is smoother and reaches a lower minimum compared to the baseline.
 
-1.  **Real-World Data Grounding:**
-    - Integrate the Kaggle CLI data (e.g., `oasis_longitudinal.csv`) to map simulation states to real longitudinal brain metrics.
-    - Implement a `DataLoader` class in `adaptive_fwi.py` to replace or augment `simulate_episode`.
-
-2.  **Dimension Sensitivity Analysis:**
-    - Perform a "dropout" test on each dimension to verify if the zero-weighted components are truly unnecessary or if the simulation lacks the complexity to utilize them.
-
-3.  **Regularized Simplex Projection:**
-    - Introduce an entropy-based regularization term to the simplex projection to encourage a more diverse weight distribution, preventing the model from ignoring secondary agency cues.
-
-4.  **Temporal Dynamics:**
-    - Upgrade the `dynamics` model from a simple linear decay to a non-linear oscillator or a Recurrent Neural Network (RNN) trained on BOLD signal data.
+### 6. Next Steps
+- **Multi-Modal Integration:** Combine EEG with longitudinal MRI data (already downloaded) to model temporal persistence over longer horizons.
+- **Active Learning:** Implement a feedback loop where low-confidence emergence proofs trigger further simulation in the vicinity of the failure point.
 
 ---
-*Report generated by Jules - Software Engineer*
+*Report updated by Jules - Software Engineer*

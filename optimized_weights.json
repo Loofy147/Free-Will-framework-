@@ -1,12 +1,12 @@
 {
-    "causal_entropy": 0.07892100735840228,
-    "integration": 0.29091082447568917,
-    "counterfactual": 0.36168008913599764,
+    "causal_entropy": 0.06633483726426562,
+    "integration": 0.32120149302656165,
+    "counterfactual": 0.4340397311729817,
     "metacognition": 0.0,
     "veto_efficacy": 0.0,
-    "bayesian_precision": 0.07809175541839064,
-    "persistence": 0.0014781264423218122,
-    "volitional_integrity": 0.18891819716919836,
+    "bayesian_precision": 0.0,
+    "persistence": 0.0,
+    "volitional_integrity": 0.17842393853619104,
     "moral_alignment": 0.0,
     "constraint_penalty": 0.0
 }

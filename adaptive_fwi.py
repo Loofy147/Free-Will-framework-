@@ -6,6 +6,7 @@ Optimizes across all 10 realization dimensions.
 """
 
 import numpy as np
+import pandas as pd
 import time
 from typing import Dict, List, Any, Tuple
 from dataclasses import dataclass
@@ -34,22 +35,28 @@ def _project_simplex(v: np.ndarray, z: float = 1.0) -> np.ndarray:
     return np.maximum(v - theta, 0)
 
 
-def simulate_episode(seed: int = 42) -> Episode:
+def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
     """
     Simulates a single agent state and computes its FWI components.
     Used to generate 'ground truth' for weight optimization.
     """
     np.random.seed(seed)
 
+    # Use EEG data as noise source if available
+    noise_gain = 1.0
+    if eeg_data is not None:
+        # Normalize EEG data to use as state perturbation
+        eeg_norm = (eeg_data - np.mean(eeg_data)) / (np.std(eeg_data) + 1e-6)
+        noise_gain = 1.0 + 0.1 * np.mean(np.abs(eeg_norm))
+
     agent = AgentState(
-        belief_state=np.random.randn(10),
+        belief_state=np.random.randn(10) * noise_gain,
         goal_state=np.random.rand(5),
         meta_belief=np.random.randn(8) * 0.5,
         action_repertoire=np.random.randn(20, 3)
     )
 
     def dynamics(s, a):
-        # Optimized: Avoid np.zeros/np.pad in hot loop (Bolt Journal)
         res = s * 0.9
         if a.ndim == 1:
             n = min(len(s), len(a))
@@ -118,7 +125,6 @@ def simulate_episode(seed: int = 42) -> Episode:
         'external_constraint':  ec
     }
 
-    # --- emergence label via existing proof logic ---
     fwi_result = {
         'fwi': 0.0,
         'counterfactual_count': n_cf,
@@ -156,16 +162,25 @@ class AdaptiveFWI(FreeWillIndex):
         self._best_loss: float                  = float('inf')
 
     def optimize(self, n_episodes: int = 500, lr: float = 0.08,
-                 n_epochs: int = 150, verbose: bool = True) -> Dict:
+                 n_epochs: int = 150, verbose: bool = True, entropy_reg: float = 0.01) -> Dict:
         t0 = time.time()
         if verbose:
             print("\n" + "=" * 70)
-            print(" ADAPTIVE FWI — WEIGHT OPTIMIZATION (10 DIMENSIONS)")
+            print(" ADAPTIVE FWI — IMPROVED WEIGHT OPTIMIZATION")
             print("=" * 70)
+
+        # Load EEG data for grounding
+        try:
+            df = pd.read_csv("data/seizure/Epileptic Seizure Recognition.csv")
+            eeg_array = df.iloc[:, 1:179].values
+        except Exception:
+            eeg_array = None
+            print("[WARN] EEG data not found, falling back to pure simulation.")
 
         episodes = []
         for i in range(n_episodes):
-            episodes.append(simulate_episode(seed=i + 1000))
+            eeg_row = eeg_array[i % len(eeg_array)] if eeg_array is not None else None
+            episodes.append(simulate_episode(seed=i + 1000, eeg_data=eeg_row))
 
         X = np.array([[e.components[k] for k in self.COMPONENT_KEYS] for e in episodes])
         y = np.array([e.fwi_target for e in episodes])
@@ -184,7 +199,6 @@ class AdaptiveFWI(FreeWillIndex):
         }
 
         sign = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, -1], dtype=float)
-
         w = np.array([self.weights[weight_key_map[k]] for k in self.COMPONENT_KEYS])
 
         for epoch in range(n_epochs):
@@ -192,7 +206,14 @@ class AdaptiveFWI(FreeWillIndex):
             residuals = fwi_pred - y
             loss = float(np.mean(residuals ** 2))
             accuracy = float(np.mean(((fwi_pred >= 0.5) == (y >= 0.5)).astype(float)))
+
             grad = (2.0 / len(y)) * (X * sign).T @ residuals
+
+            if entropy_reg > 0:
+                # Regularized Simplex: Add entropy gradient to prevent zero weights
+                grad_entropy = - (1.0 + np.log(w + 1e-9))
+                grad += entropy_reg * grad_entropy
+
             w = w - lr * grad
             w = _project_simplex(w)
 
@@ -206,7 +227,7 @@ class AdaptiveFWI(FreeWillIndex):
                     weight_key_map[k]: float(w[i]) for i, k in enumerate(self.COMPONENT_KEYS)
                 }
 
-            if verbose and (epoch % 30 == 0 or epoch == n_epochs - 1):
+            if verbose and (epoch % 50 == 0 or epoch == n_epochs - 1):
                 print(f"       Epoch {epoch:>4d} | Loss {loss:.6f} | Acc {accuracy:.3f}")
 
         self.weights = dict(self._optimal_weights)
@@ -232,11 +253,11 @@ class OptimizationTrace:
 
 if __name__ == "__main__":
     optimizer = AdaptiveFWI()
-    report = optimizer.optimize(n_episodes=200, n_epochs=100, lr=0.1)
-    print(f"Optimal weights: {report['optimal_weights']}")
+    # Scaled training parameters
+    report = optimizer.optimize(n_episodes=2000, n_epochs=500, lr=0.04, entropy_reg=0.03)
+    print(f"\nOptimal weights: {report['optimal_weights']}")
 
     # Persist optimized weights
-    import json
     with open("optimized_weights.json", "w") as f:
         json.dump(report["optimal_weights"], f, indent=4)
     print("\n[INFO] Optimized weights saved to optimized_weights.json")
