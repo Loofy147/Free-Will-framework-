@@ -132,12 +132,14 @@ class IntegratedVolitionSystem:
 
         step_data = []
 
+        # Optimized: Move constant matrix outside temporal loop (Bolt)
+        conn_eye = np.eye(10)
         for t in range(n_steps):
             individual_fwis = []
             bold_signals = []
 
             for agent in agents:
-                res = self.compute_full_agency(agent, dynamics, np.eye(10), bounds)
+                res = self.compute_full_agency(agent, dynamics, conn_eye, bounds)
                 individual_fwis.append(res['fwi'])
                 bold_signals.append(res['biological_signals']['global_volition_signal'])
                 # Evolve agent belief slightly for next step
