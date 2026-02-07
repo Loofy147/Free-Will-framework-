@@ -1,3 +1,4 @@
+import itertools
 """
 COMPUTATIONAL FREE WILL FRAMEWORK
 A mathematically rigorous model of volitional agency
@@ -67,7 +68,7 @@ class CausalEntropyCalculator:
         if len(reachable_states) > 10:
             # Sample around the most distant states to find new frontiers
             n_fine = 200
-            frontier_states = list(reachable_states.values())[::5] # Subsample for speed
+            frontier_states = list(itertools.islice(reachable_states.values(), 0, None, 5)) # Subsample for speed
             for s in frontier_states:
                 # Refined sampling around frontier
                 refined = self._sample_reachable(s, dynamics_model, action_space, n_fine // len(frontier_states), horizon=5)
@@ -191,6 +192,7 @@ class IntegratedInformationCalculator:
     def __init__(self):
         # Dual-layer cache: store the expensive spectral gap separately from state modulation
         self._spectral_cache = {}
+        self._id_cache = {}  # Fast ID-based cache (Bolt Optimization)
 
     @staticmethod
     @jax.jit
@@ -224,31 +226,37 @@ class IntegratedInformationCalculator:
         """
         Compute Φ - integrated information using MIP proxy logic.
         """
-        # Cache lookup for the expensive spectral component
-        h_conn = hash(connectivity_matrix.tobytes())
-        if h_conn in self._spectral_cache:
-            phi_spectral = self._spectral_cache[h_conn]
+        # Fast ID-based cache lookup (Bolt Optimization)
+        obj_id = id(connectivity_matrix)
+        if obj_id in self._id_cache:
+            phi_spectral = self._id_cache[obj_id]
         else:
-            n = len(connectivity_matrix)
-            if n < 2:
-                phi_spectral = 0.0
-            elif np.all(connectivity_matrix == 0):
-                phi_spectral = 0.0
+            # Cache lookup for the expensive spectral component
+            h_conn = hash(connectivity_matrix.tobytes())
+            if h_conn in self._spectral_cache:
+                phi_spectral = self._spectral_cache[h_conn]
             else:
-                try:
-                    phi_spectral = float(self._compute_spectral_gap_jax(connectivity_matrix))
-                except:
-                    # Fallback (Numpy) with similar matrix optimizations
-                    degree = np.sum(connectivity_matrix, axis=1)
-                    d_inv_sqrt = np.where(degree > 0, 1.0 / np.sqrt(degree), 0.0)
-                    norm_adj = d_inv_sqrt[:, None] * connectivity_matrix * d_inv_sqrt[None, :]
-                    identity = np.eye(n)
-                    norm_lap = identity - norm_adj
-                    evs = np.linalg.eigvalsh(norm_lap) # Already sorted
-                    # Phi is the gap between the trivial 0 eigenvalue and the first non-zero one
-                    phi_spectral = float(evs[1]) if len(evs) > 1 and evs[1] > 1e-5 else 0.0
+                n = len(connectivity_matrix)
+                if n < 2:
+                    phi_spectral = 0.0
+                elif np.all(connectivity_matrix == 0):
+                    phi_spectral = 0.0
+                else:
+                    try:
+                        phi_spectral = float(self._compute_spectral_gap_jax(connectivity_matrix))
+                    except:
+                        # Fallback (Numpy) with similar matrix optimizations
+                        degree = np.sum(connectivity_matrix, axis=1)
+                        d_inv_sqrt = np.where(degree > 0, 1.0 / np.sqrt(degree), 0.0)
+                        norm_adj = d_inv_sqrt[:, None] * connectivity_matrix * d_inv_sqrt[None, :]
+                        identity = np.eye(n)
+                        norm_lap = identity - norm_adj
+                        evs = np.linalg.eigvalsh(norm_lap) # Already sorted
+                        # Phi is the gap between the trivial 0 eigenvalue and the first non-zero one
+                        phi_spectral = float(evs[1]) if len(evs) > 1 and evs[1] > 1e-5 else 0.0
 
-            self._spectral_cache[h_conn] = phi_spectral
+                self._spectral_cache[h_conn] = phi_spectral
+            self._id_cache[obj_id] = phi_spectral
 
         # State-dependent modulation: Φ increases with state complexity (entropy)
         # This part is cheap and should NOT be cached by connectivity alone (P6 fix)
@@ -331,18 +339,28 @@ class CounterfactualDepthCalculator:
     def compute_counterfactual_depth(self, current_state: np.ndarray, action_space: np.ndarray, dynamics_model: callable, horizon: int = 10) -> Tuple[int, float]:
         """
         Returns:
-            (n_distinct_futures, average_divergence)
+            (n_distinct_futures, average_divergence) (Bolt Optimization)
         """
         if len(action_space) == 0: return 0, 0.0
         futures = {}  # hsh -> state
 
-        for action in action_space:
-            # Simulate one step
-            next_state = dynamics_model(current_state, action)
-            state_hash = next_state.round(1).tobytes()
-
-            if state_hash not in futures:
-                futures[state_hash] = next_state
+        # Try vectorized simulation
+        try:
+            next_states = dynamics_model(current_state, action_space)
+            if next_states.ndim == 2 and len(next_states) == len(action_space):
+                rounded = np.round(next_states, 1)
+                hashes = [s.tobytes() for s in rounded]
+                for idx, h in enumerate(hashes):
+                    if h not in futures:
+                        futures[h] = next_states[idx]
+            else: raise ValueError()
+        except Exception:
+            for action in action_space:
+                # Simulate one step
+                next_state = dynamics_model(current_state, action)
+                state_hash = next_state.round(1).tobytes()
+                if state_hash not in futures:
+                    futures[state_hash] = next_state
 
         n_distinct = len(futures)
 
@@ -358,7 +376,6 @@ class CounterfactualDepthCalculator:
             avg_divergence = 0.0
 
         return n_distinct, avg_divergence
-
 
 # ============================================================================
 # PART 2: FREE WILL INDEX (FWI) - THE CORE INNOVATION
@@ -647,7 +664,12 @@ class FreeWillIndex:
             sampled_actions = agent_state.action_repertoire[indices]
 
             # Vectorized alignment calculation for speed
-            outcomes = np.array([dynamics_model(agent_state.belief_state, a) for a in sampled_actions])
+            # Vectorized alignment calculation (Bolt Optimization)
+            try:
+                outcomes = dynamics_model(agent_state.belief_state, sampled_actions)
+                if outcomes.ndim == 1 and n_veto_samples > 1: raise ValueError()
+            except Exception:
+                outcomes = np.array([dynamics_model(agent_state.belief_state, a) for a in sampled_actions])
             g = agent_state.goal_state
             outcomes_sub = outcomes[:, :len(g)]
             # Compute cosine similarities in one go

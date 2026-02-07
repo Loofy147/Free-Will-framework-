@@ -131,6 +131,9 @@ class SwarmSimulator:
         # Common goal component for the swarm
         common_goal = np.random.randn(3)
 
+        # Optimized: Move constant matrix outside loop (Bolt)
+        conn_individual = np.eye(10) * 0.5
+
         for i in range(self.n_agents):
             # Individual preference biased towards common goal
             pref_bias = common_goal + np.random.randn(3) * 0.5
@@ -145,8 +148,8 @@ class SwarmSimulator:
 
             # Compute individual FWI (simplified for speed in swarm)
             # Use small connectivity for individuals
-            conn = np.eye(10) * 0.5
-            res = self.fwi_calc.compute(agent, dynamics, conn, bounds)
+            # conn moved outside loop
+            res = self.fwi_calc.compute(agent, dynamics, conn_individual, bounds)
             individual_fwis.append(res['fwi'])
 
             # Random preferred action from repertoire
