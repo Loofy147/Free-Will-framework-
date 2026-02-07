@@ -1,0 +1,19 @@
+
+======================================================================
+ ADAPTIVE FWI — MULTI-MODAL GROUNDED OPTIMIZATION
+======================================================================
+       Epoch    0 | Loss 0.569180 | Acc 0.051
+       Epoch   50 | Loss 0.035679 | Acc 0.949
+       Epoch  100 | Loss 0.034215 | Acc 0.949
+       Epoch  150 | Loss 0.033948 | Acc 0.949
+       Epoch  200 | Loss 0.033837 | Acc 0.949
+       Epoch  250 | Loss 0.033888 | Acc 0.949
+       Epoch  300 | Loss 0.034156 | Acc 0.949
+       Epoch  350 | Loss 0.034841 | Acc 0.949
+       Epoch  400 | Loss 0.036010 | Acc 0.949
+       Epoch  450 | Loss 0.035638 | Acc 0.949
+       Epoch  499 | Loss 0.035342 | Acc 0.949
+
+Optimal weights: {'causal_entropy': 0.0, 'integration': 0.0, 'counterfactual': 0.0, 'metacognition': 0.0, 'veto_efficacy': 0.17460210800762233, 'bayesian_precision': 0.0, 'persistence': 0.4190078850191982, 'volitional_integrity': 0.0, 'moral_alignment': 0.0, 'constraint_penalty': 0.40639000697317945}
+
+[INFO] Optimized weights saved to optimized_weights.json

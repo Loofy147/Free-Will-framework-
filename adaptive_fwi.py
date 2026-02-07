@@ -1,10 +1,4 @@
 import json
-"""
-ADAPTIVE FWI - WEIGHT OPTIMIZATION (P1)
-Learns optimal FWI weights via analytic gradient descent on simulated datasets.
-Optimizes across all 10 realization dimensions.
-"""
-
 import numpy as np
 import pandas as pd
 import time
@@ -24,7 +18,6 @@ class Episode:
     emergence_label: bool
     fwi_target:      float
 
-
 def _project_simplex(v: np.ndarray, z: float = 1.0) -> np.ndarray:
     """Projection onto the probability simplex: sum(w)=z, w >= 0"""
     n_features = v.shape[0]
@@ -34,24 +27,26 @@ def _project_simplex(v: np.ndarray, z: float = 1.0) -> np.ndarray:
     theta = float(cssv[rho] - z) / (rho + 1)
     return np.maximum(v - theta, 0)
 
-
-def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
-    """
-    Simulates a single agent state and computes its FWI components.
-    Used to generate 'ground truth' for weight optimization.
-    """
+def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None, mri_data: Dict = None) -> Episode:
     np.random.seed(seed)
 
-    # Use EEG data as noise source if available
+    # Use EEG data as noise source
     noise_gain = 1.0
     if eeg_data is not None:
-        # Normalize EEG data to use as state perturbation
         eeg_norm = (eeg_data - np.mean(eeg_data)) / (np.std(eeg_data) + 1e-6)
         noise_gain = 1.0 + 0.1 * np.mean(np.abs(eeg_norm))
 
+    # Use MRI data to ground goal and persistence
+    cdr_penalty = 0.0
+    persistence_bias = 0.5
+    if mri_data is not None:
+        cdr_penalty = mri_data.get('CDR', 0.0) * 0.5
+        nwbv = mri_data.get('nWBV', 0.7)
+        persistence_bias = nwbv # Higher volume -> higher persistence potential
+
     agent = AgentState(
         belief_state=np.random.randn(10) * noise_gain,
-        goal_state=np.random.rand(5),
+        goal_state=np.random.rand(5) * (1.0 - cdr_penalty),
         meta_belief=np.random.randn(8) * 0.5,
         action_repertoire=np.random.randn(20, 3)
     )
@@ -93,6 +88,7 @@ def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
 
     persistence_calc = TemporalPersistenceCalculator()
     persistence = persistence_calc.compute_persistence(agent, dynamics)
+    persistence = float(np.clip(persistence * persistence_bias, 0, 1))
 
     veto_calc = VetoMechanism()
     vetoes = 0
@@ -102,11 +98,11 @@ def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
             vetoes += 1
     veto_eff = 1.0 - (vetoes / 5.0)
 
-    belief_updater = BayesianBeliefUpdater()
-    precision = belief_updater.precision
-
     firewall = VolitionalFirewall()
-    integrity_penalty = firewall.evaluate_integrity(agent.goal_state, agent.meta_belief)
+    firewall.evaluate_integrity(agent.goal_state, agent.meta_belief)
+    # Simulate a goal shift based on CDR
+    shifted_goal = agent.goal_state * (1.0 - cdr_penalty * 0.5)
+    integrity_penalty = firewall.evaluate_integrity(shifted_goal, agent.meta_belief)
     integrity = 1.0 - integrity_penalty
 
     ethical_filter = EthicalFilter()
@@ -118,23 +114,29 @@ def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
         'counterfactual_depth': cd_norm,
         'metacognition':        ma,
         'veto_efficacy':        veto_eff,
-        'bayesian_precision':   precision,
+        'bayesian_precision':   0.8,
         'persistence':          persistence,
         'volitional_integrity': integrity,
         'moral_alignment':      moral_alignment,
         'external_constraint':  ec
     }
 
+    # --- ENHANCED emergence label ---
+    # Now requires stability and integrity in addition to Phi and CF
     fwi_result = {
         'fwi': 0.0,
         'counterfactual_count': n_cf,
         'components': {
-            'integration_phi': phi
+            'integration_phi': phi,
+            'persistence': persistence,
+            'volitional_integrity': integrity
         }
     }
     self_pred_acc = 1.0 - min(meta_var_actual * 0.15, 0.98)
     proof = EmergenceProof.prove_emergence(agent, fwi_result, self_pred_acc)
-    emerged = proof['emergence_proven']
+
+    # Enhanced logic: Must have persistence and integrity > 0.4
+    emerged = proof['emergence_proven'] and persistence > 0.4 and integrity > 0.4 and cdr_penalty < 0.2
 
     return Episode(
         components=components,
@@ -144,10 +146,6 @@ def simulate_episode(seed: int = 42, eeg_data: np.ndarray = None) -> Episode:
 
 
 class AdaptiveFWI(FreeWillIndex):
-    """
-    FreeWillIndex with learned weights across all 10 dimensions.
-    """
-
     COMPONENT_KEYS = [
         'causal_entropy', 'integration_phi', 'counterfactual_depth',
         'metacognition', 'veto_efficacy', 'bayesian_precision',
@@ -166,21 +164,30 @@ class AdaptiveFWI(FreeWillIndex):
         t0 = time.time()
         if verbose:
             print("\n" + "=" * 70)
-            print(" ADAPTIVE FWI — IMPROVED WEIGHT OPTIMIZATION")
+            print(" ADAPTIVE FWI — MULTI-MODAL GROUNDED OPTIMIZATION")
             print("=" * 70)
 
-        # Load EEG data for grounding
+        # 1. Load EEG data
         try:
-            df = pd.read_csv("data/seizure/Epileptic Seizure Recognition.csv")
-            eeg_array = df.iloc[:, 1:179].values
+            df_eeg = pd.read_csv("data/seizure/Epileptic Seizure Recognition.csv")
+            eeg_array = df_eeg.iloc[:, 1:179].values
         except Exception:
             eeg_array = None
-            print("[WARN] EEG data not found, falling back to pure simulation.")
+            print("[WARN] EEG data not found.")
+
+        # 2. Load MRI data
+        try:
+            df_mri = pd.read_csv("data/oasis_longitudinal.csv")
+            mri_list = df_mri.to_dict('records')
+        except Exception:
+            mri_list = None
+            print("[WARN] MRI data not found.")
 
         episodes = []
         for i in range(n_episodes):
             eeg_row = eeg_array[i % len(eeg_array)] if eeg_array is not None else None
-            episodes.append(simulate_episode(seed=i + 1000, eeg_data=eeg_row))
+            mri_row = mri_list[i % len(mri_list)] if mri_list is not None else None
+            episodes.append(simulate_episode(seed=i + 1000, eeg_data=eeg_row, mri_data=mri_row))
 
         X = np.array([[e.components[k] for k in self.COMPONENT_KEYS] for e in episodes])
         y = np.array([e.fwi_target for e in episodes])
@@ -210,22 +217,17 @@ class AdaptiveFWI(FreeWillIndex):
             grad = (2.0 / len(y)) * (X * sign).T @ residuals
 
             if entropy_reg > 0:
-                # Regularized Simplex: Add entropy gradient to prevent zero weights
                 grad_entropy = - (1.0 + np.log(w + 1e-9))
                 grad += entropy_reg * grad_entropy
 
             w = w - lr * grad
             w = _project_simplex(w)
 
-            self._trace.append(OptimizationTrace(
-                epoch=epoch, weights=w.copy(), loss=loss, accuracy=accuracy
-            ))
+            self._trace.append(OptimizationTrace(epoch=epoch, weights=w.copy(), loss=loss, accuracy=accuracy))
 
             if loss < self._best_loss:
                 self._best_loss = loss
-                self._optimal_weights = {
-                    weight_key_map[k]: float(w[i]) for i, k in enumerate(self.COMPONENT_KEYS)
-                }
+                self._optimal_weights = {weight_key_map[k]: float(w[i]) for i, k in enumerate(self.COMPONENT_KEYS)}
 
             if verbose and (epoch % 50 == 0 or epoch == n_epochs - 1):
                 print(f"       Epoch {epoch:>4d} | Loss {loss:.6f} | Acc {accuracy:.3f}")
@@ -241,23 +243,15 @@ class AdaptiveFWI(FreeWillIndex):
             'wall_time_s':      elapsed
         }
 
-    def get_optimal_weights(self) -> Dict[str, float]:
-        return dict(self._optimal_weights)
-
 @dataclass
 class OptimizationTrace:
-    epoch:          int
-    weights:        np.ndarray
-    loss:           float
-    accuracy:       float
+    epoch: int; weights: np.ndarray; loss: float; accuracy: float
 
 if __name__ == "__main__":
     optimizer = AdaptiveFWI()
-    # Scaled training parameters
-    report = optimizer.optimize(n_episodes=2000, n_epochs=500, lr=0.04, entropy_reg=0.03)
+    report = optimizer.optimize(n_episodes=2000, n_epochs=500, lr=0.03, entropy_reg=0.04)
     print(f"\nOptimal weights: {report['optimal_weights']}")
 
-    # Persist optimized weights
     with open("optimized_weights.json", "w") as f:
         json.dump(report["optimal_weights"], f, indent=4)
     print("\n[INFO] Optimized weights saved to optimized_weights.json")
