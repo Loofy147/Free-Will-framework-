@@ -1,0 +1,17 @@
+
+======================================================================
+ ADAPTIVE FWI — MASSIVE SCALE MULTI-TASK OPTIMIZATION
+======================================================================
+       Epoch    0 | Loss 0.515281 | Acc 0.127 | LR 0.02000
+       Epoch  100 | Loss 0.396280 | Acc 0.127 | LR 0.01810
+       Epoch  200 | Loss 0.396102 | Acc 0.127 | LR 0.01637
+       Epoch  300 | Loss 0.395940 | Acc 0.127 | LR 0.01481
+       Epoch  400 | Loss 0.395794 | Acc 0.127 | LR 0.01340
+       Epoch  500 | Loss 0.395661 | Acc 0.127 | LR 0.01213
+       Epoch  600 | Loss 0.395542 | Acc 0.127 | LR 0.01097
+       Epoch  700 | Loss 0.395434 | Acc 0.127 | LR 0.00993
+       Epoch  800 | Loss 0.395336 | Acc 0.127 | LR 0.00898
+       Epoch  900 | Loss 0.395247 | Acc 0.127 | LR 0.00813
+       Epoch  999 | Loss 0.126800 | Acc 0.873 | LR 0.00736
+
+Optimal weights: {'causal_entropy': 0.1103575018975107, 'integration': 0.112137889845485, 'counterfactual': 0.11184560511856034, 'metacognition': 0.1111536800480053, 'veto_efficacy': 0.11034536568934072, 'bayesian_precision': 0.11142988008919019, 'persistence': 0.1100287206164694, 'volitional_integrity': 0.11183427528317225, 'moral_alignment': 0.11086708141192503, 'constraint_penalty': 0.0}

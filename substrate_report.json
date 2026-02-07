@@ -1,0 +1,17 @@
+{
+    "Silicon": {
+        "fwi": 0.2102335491313771,
+        "energy_fwi_ratio": 72322630432.72363,
+        "bold_volition_signal": 0.3161677598095666
+    },
+    "Neuromorphic": {
+        "fwi": 0.20610044979880032,
+        "energy_fwi_ratio": 70853368857799.39,
+        "bold_volition_signal": 0.277677926018606
+    },
+    "Biotic": {
+        "fwi": 0.2058767112632657,
+        "energy_fwi_ratio": 5.270383926254483e+16,
+        "bold_volition_signal": 0.13322090945114237
+    }
+}
