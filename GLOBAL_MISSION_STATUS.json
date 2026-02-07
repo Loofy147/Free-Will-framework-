@@ -215,14 +215,16 @@
         "rsi_safety_status": "CLOSED (Halted at Cycle 17)",
         "hijack_detection_risk": 0.9608,
         "veto_efficacy": "Verified",
-        "realization_layers": 5
+        "realization_layers": 5,
+        "energy_fwi_ratio_biotic": 5.27e+16
     },
     "training_status": {
-        "latest_accuracy": 0.949,
+        "latest_accuracy": 0.873,
         "grounding_sources": [
             "EEG (Seizure Recognition)",
-            "MRI (OASIS Longitudinal)"
+            "MRI (OASIS Longitudinal)",
+            "Longitudinal MRI Transitions"
         ],
-        "dominant_dimension": "Temporal Persistence (P7)"
+        "dominant_dimension": "Multi-Task Balanced (10-dim)"
     }
 }

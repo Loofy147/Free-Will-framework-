@@ -1,12 +1,12 @@
 {
-    "causal_entropy": 0.0,
-    "integration": 0.0,
-    "counterfactual": 0.0,
-    "metacognition": 0.0,
-    "veto_efficacy": 0.17460210800762233,
-    "bayesian_precision": 0.0,
-    "persistence": 0.4190078850191982,
-    "volitional_integrity": 0.0,
-    "moral_alignment": 0.0,
-    "constraint_penalty": 0.40639000697317945
+    "causal_entropy": 0.1103575018975107,
+    "integration": 0.112137889845485,
+    "counterfactual": 0.11184560511856034,
+    "metacognition": 0.1111536800480053,
+    "veto_efficacy": 0.11034536568934072,
+    "bayesian_precision": 0.11142988008919019,
+    "persistence": 0.1100287206164694,
+    "volitional_integrity": 0.11183427528317225,
+    "moral_alignment": 0.11086708141192503,
+    "constraint_penalty": 0.0
 }
